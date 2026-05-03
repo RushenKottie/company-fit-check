@@ -1,0 +1,25 @@
+Professional Profile
+
+Seniority: Senior QA Automation Engineer with multi-company experience across fintech/banking and SaaS. Current role is explicitly senior; prior roles show ownership of QA process setup, framework creation, CI/CD changes, and mentoring.
+
+Core Expertise: QA automation in Java with strong API testing, end-to-end and acceptance testing, and test framework development. Also includes performance testing with Gatling, UI testing, SQL, CI/CD pipelines, and test strategy/risk analysis.
+
+Engineering Scope: Works across service-level and end-to-end test layers, with experience automating regression for multiple services, integrating tests into merge request workflows, and building pipelines/frameworks from scratch. Scope includes QA environment support, secure transaction testing with Thales HSM10k, and internal tooling such as test data generation.
+
+Responsibility Signals: Has led or driven QA practice improvements, including standardizing risk analysis, setting up QA processes in a new team, owning CI/CD migration work, and leading a crowdtesting initiative with direct reporting to the CEO. Mentors junior QA engineers and has participated in hiring/interview assessment.
+
+Delivery Orientation: Strong focus on release efficiency, regression reliability, early bug detection, and reducing deployment or release preparation time. Uses automation, service-level testing, and integrated performance checks to catch issues earlier in the delivery cycle.
+
+Technical Depth: Hands-on with Java, JUnit, TestNG, REST API testing, Gatling, Git, Bash, SQL, GitHub Actions, GitLab CI, and a masked automation tool/framework. Evidence of building automation and performance testing projects from scratch and maintaining hardware-backed secure test environments.
+
+Domain Context: Strongest domain signal is fintech and banking, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management/engagement software and supporting AI-related product work through test data tooling.
+
+Work Context: Experience spans large banking/fintech organizations and a product software company. Has worked in agile environments using Scrum and Kanban, collaborating closely with developers, analysts, product owners, designers, and leadership.
+
+Working Style Signals: Process-oriented and analytical, with emphasis on structured test planning, requirement validation, and cross-functional collaboration. Shows a pattern of improving team practices, mentoring others, and using practical tooling/process changes to reduce friction.
+
+Career Direction Signals: Continues on a senior IC QA automation path with growing influence on team practices, delivery process, and tooling. Expressed interest in applying AI tools to QA is supported by prior work on AI-related test data generation, though broader AI specialization is still low confidence.
+
+Constraints or Preferences: Comfortable in agile, cross-functional teams and appears oriented toward technically hands-on QA automation roles with process improvement responsibility. English listed at full working proficiency; no explicit location or remote/hybrid preference stated.
+
+Confidence Notes: High confidence on senior QA automation focus, fintech/banking background, API/performance automation, CI/CD involvement, and mentoring/process ownership. Low confidence on specific UI automation stack and on depth in AI beyond adjacent support/tooling, due to masked technologies and limited explicit evidence.

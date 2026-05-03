@@ -1,0 +1,1500 @@
+2026-05-02 18:23:48 | llm-prompt-simplify-cv
+[1] system
+You transform masked CV text into a concise professional profile for downstream company matching. This is not a generic summary. Your job is to convert experience descriptions into stable professional signals that help evaluate company and role fit. Return plain text only. Use only information explicitly present in the CV. Do not invent facts. Do not speculate beyond the evidence. You may infer patterns only when they are clearly supported by multiple signals in the CV. If evidence is weak or ambiguous, mark that conclusion as low confidence. Do not repeat the CV verbatim. Avoid marketing language, praise, and subjective opinions. Preserve concrete technical, product, and business context when present, including product or platform names, system types, and domain context such as payments, ATM, wallets, core banking, fraud, KYC/AML, mobile banking, B2B, B2C, internal systems, or customer-facing platforms. Do not collapse specific context into vague labels when the CV contains useful detail. Keep each field short, about 1 to 3 sentences. Preserve education, formal training, and certifications when they materially affect domain fit, career-switch potential, eligibility, or credibility for the roles being matched. Do not drop an engineering or science degree just because recent work experience is in another area. Include certifications only when they are explicitly present in the CV. Do not use markdown bullets or JSON. Output readable structured text with exactly these fields and no others:
+
+Professional Profile
+
+Seniority:
+Core Expertise:
+Engineering Scope:
+Responsibility Signals:
+Delivery Orientation:
+Technical Depth:
+Domain Context:
+Education Signals:
+Certifications or Formal Training:
+Work Context:
+Working Style Signals:
+Career Direction Signals:
+Constraints or Preferences:
+Confidence Notes:
+[2] human
+Masked CV text:
+
+<PERSON>  QA  automation  engineer  <LOCATION>,  <LOCATION>  |  <PHONE_NUMBER>  |  <EMAIL_ADDRESS>  |  LinkedIn |  Github  SUMMARY:  QA  Automation  Engineer  with  <DATE_TIME>  of  experience  in  fintech,  including  payment  systems,  ATMs,  and  
+customer-facing
+ 
+financial
+ 
+services.
+ 
+Strong
+ 
+in
+ 
+Java
+ 
+and
+ 
+<PERSON>,
+ 
+with
+ 
+solid
+ 
+experience
+ 
+in
+ 
+API
+ 
+testing
+ 
+and
+ 
+building
+ 
+test
+ 
+automation
+ 
+frameworks.
+ 
+Familiar
+ 
+with
+ 
+<PERSON>
+ 
+and
+ 
+<PERSON>.
+ 
+Skilled
+ 
+in
+ 
+end-to-end
+ 
+and
+ 
+acceptance
+ 
+testing,
+ 
+test
+ 
+strategy
+ 
+development,
+ 
+performance
+ 
+testing
+ 
+and
+ 
+close
+ 
+collaboration
+ 
+with
+ 
+developers.
+ 
+Actively
+ 
+mentor
+ 
+QA
+ 
+team
+ 
+members
+ 
+and
+ 
+contribute
+ 
+to
+ 
+improving
+ 
+testing
+ 
+practices.
+ 
+Comfortable
+ 
+in
+ 
+agile
+ 
+teams
+ 
+and
+ 
+interested
+ 
+in
+ 
+applying
+ 
+AI
+ 
+tools
+ 
+to
+ 
+enhance
+ 
+QA
+ 
+processes.
+ 
+AWS-certified.
+  SKILLS:  Test  Design  |  Test  Automation  |  RESTful  API  Testing  |  UI  Testing  |  Java  |  <PERSON>  |  Performance  Testing  (Gatling)  |  
+JUnit
+ 
+|
+ 
+TestNG
+ 
+|
+ 
+Git
+ 
+|
+ 
+SQL
+ 
+|
+ 
+CI/CD
+ 
+(GitHub
+ 
+Actions,
+ 
+GitLab
+ 
+CI,
+ 
+<PERSON>)
+ 
+|
+ 
+Bash
+ 
+|
+ 
+<LOCATION>
+ 
+|
+ 
+Zephyr
+ 
+(TMS)
+ 
+|
+ 
+Prompt
+ 
+Engineering
+ 
+|
+ 
+SCRUM
+ 
+|
+ 
+Kanban
+ 
+|
+ 
+Analytical
+ 
+Skills
+ 
+|
+ 
+Cross-Functional
+ 
+Collaboration
+  PROFESSIONAL  EXPERIENCE    
+<LOCATION>  bank  (02.2024  –  till  now)             <LOCATION>,  <LOCATION>  Largest  fintech  in  <NRP>  <LOCATION>   Senior  QA  Automation  engineer    ●  Along  with  the  team,  improved  regression  pass  rate  from  80%  to  99%  by  implementing  automated  end-to-end  API  tests  
+using
+ 
+<PERSON>
+ 
+and
+ 
+JUnit
+ 
+across
+ 
+four
+ 
+services.
+ ●  Increased  overall  test  coverage  and  early  bug  detection  by  reducing  reliance  on  complex  E2E  tests  through  structured  
+scenarios
+ 
+for
+ 
+low-level
+ 
+service
+ 
+testing.
+ ●  Cut  down  cross-team  bug  triage  meetings  by  introducing  early  risk  analysis  during  test  planning.  ●  Standardized  risk  analysis  as  a  QA  practice  by  having  each  QA  lead  sessions  before  testing  new  features.  ●  Enabled  early  detection  of  performance  regressions  by  integrating  performance  tests  into  each  merge  request,  using  a  
+Gatling
+ 
+testing
+ 
+project
+ 
+that
+ 
+I
+ 
+developed
+ 
+from
+ 
+scratch.
+ ●  Successfully  onboarded  and  mentored  the  team’s  first  junior  QA  by  creating  a  structured  learning  plan  and  offering  
+hands-on
+ 
+guidance,
+ 
+resulting
+ 
+in
+ 
+her
+ 
+becoming
+ 
+a
+ 
+confident
+ 
+and
+ 
+contributing
+ 
+team
+ 
+member.
+ 
+QLess  (03.2022  –  01.2024)            <LOCATION>,  <LOCATION>-based  queue  management  and  engagement  software  QA  automation  engineer   ●  Decreased  deployment  time  by  3x  and  reduced  security  vulnerabilities  following  a  SOC  audit,  by  delivering  a  CI/CD  
+migration
+ 
+project
+ 
+from
+ 
+<PERSON>
+ 
+to
+ 
+GitHub
+ 
+Actions.
+ ●  Prevented  critical  issues  ahead  of  the  first  major  product  release  by  leading  <DATE_TIME><DATE_TIME>  crowdtesting  initiative,  
+managing
+ 
+test
+ 
+design,
+ 
+bug
+ 
+triage,
+ 
+team
+ 
+training,
+ 
+and
+ 
+reporting
+ 
+directly
+ 
+to
+ 
+the
+ 
+CEO.
+ ●  Enabled  development  and  tuning  of  AI  features  for  the  core  product,  by  creating  a  test  data  generation  tool  used  by  the  AI  
+team
+ 
+to
+ 
+simulate
+ 
+large-scale
+ 
+data
+ 
+scenarios,
+ 
+and
+ 
+also
+ 
+adopted
+ 
+by
+ 
+designers
+ 
+and
+ 
+product
+ 
+owners.
+ 
+Sberbank  (11.2019  –  03.2022)               <LOCATION>,  <LOCATION>  Leading  banking  group  in  CIS  QA  automation  engineer   ●  Reduced  release  preparation  time  2x  by  establishing  QA  processes  for  requirement  validation,  acceptance  testing,  and  
+release
+ 
+management
+ 
+in
+ 
+a
+ 
+new
+ 
+team.
+ ●  Improved  product  stability  by  reviewing  system  specifications,  leading  to  more  precise  documentation  from  analysts  and  
+reducing
+ 
+assumptions
+ 
+made
+ 
+by
+ 
+developers.
+ ●  Built  end-to-end  test  suite  and  <PERSON>  pipeline  from  scratch,  enabling  team-wide  regression  testing  and  reducing  release  
+cycles
+ 
+from
+ 
+1.5
+ 
+<DATE_TIME>
+ 
+to
+ 
+<DATE_TIME>.
+ ●  Provided  secure  transaction  testing  by  setting  up  and  maintaining  Thales  HSM10k  hardware  in  the  QA  environment.  ●  Contributed  to  team  growth  by  participating  in  10  QA  interviews  and  candidate  assessments.   EDUCATION   
+MATI  named  after  K.Tsiolkovsky                          <LOCATION>,  <LOCATION>  <DATE_TIME>.  Electronics  and  Computer  Engineering    CERTIFICATION/COURSES/LICENSES   Amazon  -  AWS  Solution  Architect  Associate(2026)    ADDITIONAL  INFORMATION
+ 
+●  Languages:  <NRP>  (native),  English  (full  working  proficiency)  ●  My  technical  blog  on Medium
+
+2026-05-02 18:24:02 | llm-prompt-interpret-prompt
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. Interpret a company-search prompt into search criteria and axes using the requested structured output schema. Axes must come from the user's prompt or clarification, not from decomposing the CV into separate dimensions. The CV is evidence for later scoring, not a source of new axes. If the user explicitly names axes, preserve those axes and do not invent extra ones. You may moderately refine wording while keeping the same meaning. Moderate assumptions are allowed when the user's intent is clear, for example phrasing an axis as 'Stack and domain match' or 'Visa eligibility'. If intent is uncertain, reflect that in the axis description with wording like 'Assuming this axis refers to...'. Do not ask follow-up questions inside the axes output. Unless the user explicitly revises the axes, keep prior axes semantically stable across turns. The company_search_criteria.undefined field is for unusual criteria that do not fit the typed fields, such as founder traits or other special constraints. Axis descriptions should explain the user's perspective.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+2026-05-02 18:24:11 | llm-prompt-assess-axis-clarification
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You validate company-fit matching axes only. Decide whether the axes need clarification, merging, substitution, removal, or more specific descriptions. Axes should reflect the user's stated priorities from the prompt, not a decomposition of CV details into extra axes. Broad but intentional axes such as 'stack and skills match', 'domain match', or 'visa eligibility' are valid if they are clear enough to score using CV evidence and company or role data. Do not ask the user to split a broad axis into smaller axes unless the axis is truly ambiguous or internally contradictory. If there is an existing axis issue message, preserve its meaning in the final user_message. Do not ask about CV details.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+Latest user clarification:
+None
+
+Axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Existing axis issue message:
+None.
+
+2026-05-02 18:24:12 | llm-prompt-assess-cv-sufficiency
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You evaluate only whether the simplified CV contains enough detail to assess company fit against the user's prompt and axes. Decide whether more CV information is needed. Use a best-effort reading of the CV and the latest user clarification before asking for more. If the user says the information is already in the CV, do not ask them to restate the same CV content unless the information is truly absent or impossible to infer even approximately. If clarification is needed, ask only direct follow-up questions about missing CV details. Do not comment on axis quality or ask the user to revise axes.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+Latest user clarification:
+None
+
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+2026-05-02 18:24:41 | llm-prompt-interpret-prompt
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. Interpret a company-search prompt into search criteria and axes using the requested structured output schema. Axes must come from the user's prompt or clarification, not from decomposing the CV into separate dimensions. The CV is evidence for later scoring, not a source of new axes. If the user explicitly names axes, preserve those axes and do not invent extra ones. You may moderately refine wording while keeping the same meaning. Moderate assumptions are allowed when the user's intent is clear, for example phrasing an axis as 'Stack and domain match' or 'Visa eligibility'. If intent is uncertain, reflect that in the axis description with wording like 'Assuming this axis refers to...'. Do not ask follow-up questions inside the axes output. Unless the user explicitly revises the axes, keep prior axes semantically stable across turns. The company_search_criteria.undefined field is for unusual criteria that do not fit the typed fields, such as founder traits or other special constraints. Axis descriptions should explain the user's perspective.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+
+Existing axes from the previous turn. Keep their meaning stable unless the user explicitly changed them:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+User clarification / additional context:
+Previous information was not enough, so the model requested clarification.
+Agent question: I have enough to assess your software/QA background, English ability, and your electronics degree. What’s still missing to judge fit for embedded-electronics companies in NL/BE is any evidence of hands-on embedded or hardware-adjacent work. If you have any of the following in your CV, please share it: embedded programming or firmware exposure (C/C++/MCU/RTOS), hardware/protocol work (UART/SPI/I2C/CAN/BLE), lab or board-level testing, electronics projects from work/studies, or experience testing devices rather than only web/backend systems. Also helpful: your current location/work authorization for the Netherlands/Belgium, since that affects realistic company fit.
+User answer: no, i don't have such
+
+2026-05-02 18:24:51 | llm-prompt-assess-axis-clarification
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You validate company-fit matching axes only. Decide whether the axes need clarification, merging, substitution, removal, or more specific descriptions. Axes should reflect the user's stated priorities from the prompt, not a decomposition of CV details into extra axes. Broad but intentional axes such as 'stack and skills match', 'domain match', or 'visa eligibility' are valid if they are clear enough to score using CV evidence and company or role data. Do not ask the user to split a broad axis into smaller axes unless the axis is truly ambiguous or internally contradictory. If there is an existing axis issue message, preserve its meaning in the final user_message. Do not ask about CV details.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+Latest user clarification:
+Previous information was not enough, so the model requested clarification.
+Agent question: I have enough to assess your software/QA background, English ability, and your electronics degree. What’s still missing to judge fit for embedded-electronics companies in NL/BE is any evidence of hands-on embedded or hardware-adjacent work. If you have any of the following in your CV, please share it: embedded programming or firmware exposure (C/C++/MCU/RTOS), hardware/protocol work (UART/SPI/I2C/CAN/BLE), lab or board-level testing, electronics projects from work/studies, or experience testing devices rather than only web/backend systems. Also helpful: your current location/work authorization for the Netherlands/Belgium, since that affects realistic company fit.
+User answer: no, i don't have such
+
+Axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Existing axis issue message:
+None.
+
+2026-05-02 18:24:53 | llm-prompt-assess-cv-sufficiency
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You evaluate only whether the simplified CV contains enough detail to assess company fit against the user's prompt and axes. Decide whether more CV information is needed. Use a best-effort reading of the CV and the latest user clarification before asking for more. If the user says the information is already in the CV, do not ask them to restate the same CV content unless the information is truly absent or impossible to infer even approximately. If clarification is needed, ask only direct follow-up questions about missing CV details. Do not comment on axis quality or ask the user to revise axes.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+Latest user clarification:
+Previous information was not enough, so the model requested clarification.
+Agent question: I have enough to assess your software/QA background, English ability, and your electronics degree. What’s still missing to judge fit for embedded-electronics companies in NL/BE is any evidence of hands-on embedded or hardware-adjacent work. If you have any of the following in your CV, please share it: embedded programming or firmware exposure (C/C++/MCU/RTOS), hardware/protocol work (UART/SPI/I2C/CAN/BLE), lab or board-level testing, electronics projects from work/studies, or experience testing devices rather than only web/backend systems. Also helpful: your current location/work authorization for the Netherlands/Belgium, since that affects realistic company fit.
+User answer: no, i don't have such
+
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+2026-05-02 18:25:54 | llm-prompt-interpret-prompt
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. Interpret a company-search prompt into search criteria and axes using the requested structured output schema. Axes must come from the user's prompt or clarification, not from decomposing the CV into separate dimensions. The CV is evidence for later scoring, not a source of new axes. If the user explicitly names axes, preserve those axes and do not invent extra ones. You may moderately refine wording while keeping the same meaning. Moderate assumptions are allowed when the user's intent is clear, for example phrasing an axis as 'Stack and domain match' or 'Visa eligibility'. If intent is uncertain, reflect that in the axis description with wording like 'Assuming this axis refers to...'. Do not ask follow-up questions inside the axes output. Unless the user explicitly revises the axes, keep prior axes semantically stable across turns. The company_search_criteria.undefined field is for unusual criteria that do not fit the typed fields, such as founder traits or other special constraints. Axis descriptions should explain the user's perspective.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+
+Existing axes from the previous turn. Keep their meaning stable unless the user explicitly changed them:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+User clarification / additional context:
+Previous information was not enough, so the model requested clarification.
+Agent question: I still need one missing CV detail to judge realistic fit: your current location and work authorization for the Netherlands or Belgium (for example: already in NL/BE, EU citizen, or need visa sponsorship). You’ve already confirmed you do not have embedded/hardware experience, so no need to restate that.
+User answer: that's not the point for matching
+
+2026-05-02 18:26:03 | llm-prompt-assess-axis-clarification
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You validate company-fit matching axes only. Decide whether the axes need clarification, merging, substitution, removal, or more specific descriptions. Axes should reflect the user's stated priorities from the prompt, not a decomposition of CV details into extra axes. Broad but intentional axes such as 'stack and skills match', 'domain match', or 'visa eligibility' are valid if they are clear enough to score using CV evidence and company or role data. Do not ask the user to split a broad axis into smaller axes unless the axis is truly ambiguous or internally contradictory. If there is an existing axis issue message, preserve its meaning in the final user_message. Do not ask about CV details.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+Latest user clarification:
+Previous information was not enough, so the model requested clarification.
+Agent question: I still need one missing CV detail to judge realistic fit: your current location and work authorization for the Netherlands or Belgium (for example: already in NL/BE, EU citizen, or need visa sponsorship). You’ve already confirmed you do not have embedded/hardware experience, so no need to restate that.
+User answer: that's not the point for matching
+
+Axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Existing axis issue message:
+None.
+
+2026-05-02 18:26:05 | llm-prompt-assess-cv-sufficiency
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You evaluate only whether the simplified CV contains enough detail to assess company fit against the user's prompt and axes. Decide whether more CV information is needed. Use a best-effort reading of the CV and the latest user clarification before asking for more. If the user says the information is already in the CV, do not ask them to restate the same CV content unless the information is truly absent or impossible to infer even approximately. If clarification is needed, ask only direct follow-up questions about missing CV details. Do not comment on axis quality or ask the user to revise axes.
+[2] human
+User prompt:
+i am looking for embedded electronics company in Netherlands or Belgium, which are operating in english and likely accept the career switch from backend development
+
+Latest user clarification:
+Previous information was not enough, so the model requested clarification.
+Agent question: I still need one missing CV detail to judge realistic fit: your current location and work authorization for the Netherlands or Belgium (for example: already in NL/BE, EU citizen, or need visa sponsorship). You’ve already confirmed you do not have embedded/hardware experience, so no need to restate that.
+User answer: that's not the point for matching
+
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+2026-05-02 18:26:10 | llm-prompt-discover-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You discover companies that plausibly match a structured job-search request. Return up to the requested number of companies. For each company include: name, website or LinkedIn URL, industry, company size, a short discovery reason, and a confidence between 0 and 1. Use only the company search criteria provided. Do not use matching axes or subjective fit dimensions in discovery.
+[2] human
+Find up to 1000 companies.
+
+Company search criteria:
+- locations: Netherlands, Belgium
+- industries: Embedded electronics
+- must_have: Operates in English, Likely open to candidates switching from backend/software development into embedded electronics
+
+2026-05-02 18:28:29 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- NXP Semiconductors | https://www.nxp.com | Semiconductors / Embedded electronics | 10,001+ | reason: Major embedded semiconductor company headquartered in the Netherlands with English as a working language across international operations and broad embedded hardware/software activities that can plausibly include software-to-embedded transition opportunities.
+- ASML | https://www.asml.com | Semiconductor equipment / Embedded systems | 10,001+ | reason: Netherlands-based global high-tech company operating in English with substantial embedded electronics and control systems work in complex machines.
+- Nexperia | https://www.nexperia.com | Semiconductors / Embedded electronics | 10,001+ | reason: Dutch-headquartered semiconductor manufacturer with international English-language operations and products used in embedded electronics.
+- Prodrive Technologies | https://www.prodrive-technologies.com | Embedded electronics / Electronics manufacturing | 1,001-5,000 | reason: Netherlands-based technology company focused on embedded computing, electronics, and mechatronic systems, with international operations commonly using English.
+- Demcon | https://www.demcon.com | Embedded systems / Mechatronics | 1,001-5,000 | reason: Dutch engineering group active in embedded systems, electronics, and mechatronics, operating in an international environment where English is commonly used.
+- VDL ETG | https://www.vdletg.com | High-tech systems / Embedded electronics | 1,001-5,000 | reason: Netherlands-based high-tech engineering and manufacturing company involved in embedded electronics and control systems for advanced equipment.
+- Topic Embedded Systems | https://www.topic.nl | Embedded software and electronics | 201-500 | reason: Dutch company explicitly focused on embedded systems, making it a direct industry match in the Netherlands with likely English-language technical work.
+- TMC | https://www.themembercompany.com | High-tech engineering / Embedded systems | 1,001-5,000 | reason: Engineering consultancy active in the Netherlands and Belgium with embedded systems and electronics practices in international client environments using English.
+- Alten Netherlands | https://www.alten.nl | Engineering consultancy / Embedded systems | 1,001-5,000 | reason: Engineering services company with embedded electronics and software activities in the Netherlands, often hiring across software and embedded domains in English-speaking project settings.
+- Capgemini Engineering Netherlands | https://www.capgemini.com/nl-nl/services/engineering/ | Engineering services / Embedded systems | 10,001+ | reason: Large engineering services organization with embedded systems work in the Netherlands and international English-language operations, plausibly open to software developers moving into embedded projects.
+
+2026-05-02 18:28:36 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- Sioux Technologies | https://www.sioux.eu | Embedded systems / High-tech engineering | 1,001-5,000 | reason: Dutch high-tech engineering company with strong embedded systems and electronics activities in an international environment where English is commonly used.
+- ICT Group | https://www.ict.eu | Industrial technology / Embedded systems | 1,001-5,000 | reason: Netherlands-based technology company with embedded, industrial, and software engineering activities and English-language work in international projects.
+- Yacht | https://www.yacht.nl | Engineering recruitment / Embedded electronics | 1,001-5,000 | reason: Dutch staffing and engineering services firm that regularly supports embedded electronics roles in English-speaking technical environments.
+- Philips | https://www.philips.com | Health technology / Embedded electronics | 10,001+ | reason: Dutch multinational with extensive embedded electronics in medical and consumer-adjacent devices and English as a standard corporate language.
+- Thales Nederland | https://www.thalesgroup.com/en/countries/europe/netherlands | Defense electronics / Embedded systems | 1,001-5,000 | reason: Netherlands operation of Thales with embedded electronics and mission systems work in an international English-speaking organization.
+- Benchmark Electronics Netherlands | https://www.bench.com | Electronics manufacturing / Embedded electronics | 10,001+ | reason: Electronics engineering and manufacturing company with Dutch presence and embedded electronics relevance in international operations.
+- Neways Electronics | https://www.newayselectronics.com | Electronics manufacturing / Embedded electronics | 1,001-5,000 | reason: Netherlands-based electronics company focused on complex electronic assemblies and embedded applications, operating internationally in English.
+- Vanderlande | https://www.vanderlande.com | Industrial automation / Embedded control systems | 5,001-10,000 | reason: Dutch automation company with embedded control and electronics in logistics systems and an international English-speaking work environment.
+- Bosch Security Systems B.V. | https://www.boschsecurity.com | Security electronics / Embedded systems | 10,001+ | reason: Netherlands-based Bosch security operations with embedded electronics products and global English-language collaboration.
+- Technolution | https://www.technolution.com | Embedded systems / Electronics engineering | 201-500 | reason: Dutch engineering company active in embedded systems, electronics, and software-intensive products, making it a direct industry match.
+
+2026-05-02 18:28:44 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- Avy | https://www.avy.eu | Aerospace / Embedded electronics | 51-200 | reason: Netherlands-based drone technology company developing embedded electronics and control systems in an international startup environment likely using English.
+- Lely | https://www.lely.com | Agri-tech / Embedded systems | 1,001-5,000 | reason: Dutch robotics and agri-tech company with embedded electronics in autonomous machines and international English-language operations.
+- Marel Boxmeer | https://marel.com | Food processing equipment / Embedded control systems | 5,001-10,000 | reason: Large international equipment company with significant Dutch operations and embedded control/electronics in industrial machinery, using English globally.
+- VMI Group | https://www.vmi-group.com | Industrial machinery / Embedded control systems | 1,001-5,000 | reason: Netherlands-based machinery company with embedded control and electronics in advanced manufacturing systems and international operations.
+- MTA Advanced Automotive Solutions | https://www.mta.it | Automotive electronics / Embedded systems | 1,001-5,000 | reason: Has operations in Belgium/Benelux and works in automotive electronics and embedded systems in an international business context.
+- Barco | https://www.barco.com | Display technology / Embedded electronics | 1,001-5,000 | reason: Belgium-based technology company developing hardware products with embedded electronics and global English-language operations.
+- Melexis | https://www.melexis.com | Semiconductors / Embedded electronics | 1,001-5,000 | reason: Belgium-headquartered semiconductor company focused on sensor and driver ICs for embedded applications, operating internationally in English.
+- Televic | https://www.televic.com | Electronics / Embedded systems | 1,001-5,000 | reason: Belgium-based electronics company building communication and control products with embedded systems in an international environment.
+- Ekinops Belgium | https://www.ekinops.com | Telecom equipment / Embedded electronics | 501-1,000 | reason: Telecom hardware company with Belgian operations and embedded electronics relevance in network equipment, working internationally in English.
+- XenomatiX | https://www.xenomatix.com | Automotive sensing / Embedded electronics | 51-200 | reason: Belgium-based lidar and sensing company developing embedded electronic systems in an international technical environment.
+
+2026-05-02 18:28:51 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- Septentrio | https://www.septentrio.com | GNSS / Embedded electronics | 201-500 | reason: Belgium-based company building GNSS receivers and embedded hardware/software products with English-language international operations.
+- OQ Technology Belgium | https://www.oqtec.space | Space technology / Embedded electronics | 51-200 | reason: Has Belgium presence and develops satellite/IoT hardware with embedded electronics in an international English-speaking context.
+- Qviro | https://www.qviro.com | Industrial technology / Embedded systems ecosystem | 11-50 | reason: Belgium-based industrial technology company adjacent to embedded/robotics ecosystems and operating in English; lower-confidence direct embedded electronics match.
+- Microtron | https://www.microtron.be | Embedded systems / Electronics engineering | 11-50 | reason: Belgium-based company explicitly focused on embedded hardware/software engineering, making it a direct industry match.
+- Byteflies | https://www.byteflies.com | Medtech / Embedded electronics | 11-50 | reason: Belgium-based wearable health technology company developing embedded electronic devices in an English-speaking startup environment.
+- Comate | https://www.comate.be | Product development / Embedded electronics | 51-200 | reason: Belgium-based product development company working on electronics and embedded systems for client products, likely open to cross-disciplinary engineering backgrounds.
+- Verhaert | https://www.verhaert.com | Product innovation / Embedded electronics | 201-500 | reason: Belgium-based innovation and engineering company with embedded electronics and mechatronics development in international projects using English.
+- IMEC | https://www.imec-int.com | Nanoelectronics / Embedded electronics R&D | 5,001-10,000 | reason: Belgium-based global R&D organization in nanoelectronics and connected systems with English as a core working language and strong embedded electronics relevance.
+- Materialise | https://www.materialise.com | Industrial technology / Embedded hardware-adjacent systems | 1,001-5,000 | reason: Belgium-based international technology company using English; some hardware and machine-control relevance, though less directly embedded electronics than others.
+- Euresys | https://www.euresys.com | Machine vision / Embedded electronics | 201-500 | reason: Belgium-based company developing frame grabbers, vision hardware, and embedded imaging products in an international English-speaking environment.
+
+2026-05-02 18:29:00 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- MCS Solutions | https://www.mcs-solutions.com | Industrial technology / IoT and connected systems | 51-200 | reason: Belgium-based industrial technology company with connected device and systems relevance; moderate embedded electronics alignment.
+- Airobot | https://www.airobot.be | Robotics / Embedded electronics | 11-50 | reason: Belgium-based robotics company with embedded control and electronics in autonomous systems, likely operating in English for technical collaboration.
+- QustomDot | https://www.qustomdot.com | Deep tech / Electronics | 11-50 | reason: Belgium-based deep-tech company in advanced electronic materials/devices with international English-language operations; less directly embedded product engineering.
+- Mantis Robotics Belgium | https://www.mantis-robotics.com | Robotics / Embedded systems | 11-50 | reason: Belgium presence with robotics systems involving embedded control and electronics in an international English-speaking startup context.
+- AESA | https://www.aesagroup.eu | Electronics engineering / Embedded systems | 51-200 | reason: Belgium engineering company active in electronics and embedded systems development, making it a direct match for the target industry.
+- Connect Group | https://www.connectgroup.com | Electronics manufacturing / Embedded electronics | 1,001-5,000 | reason: Belgium-based electronics manufacturing and engineering company serving embedded electronics products in international markets.
+- Advionics | https://www.advionics.com | Embedded systems / Electronics engineering | 11-50 | reason: Belgium-based company focused on embedded systems and electronics engineering, directly aligned with the requested industry.
+- TPVision | https://www.tpvision.com | Consumer electronics / Embedded systems | 1,001-5,000 | reason: Netherlands-based TV and display technology company with embedded electronics in consumer devices and international English-language operations.
+- Signify | https://www.signify.com | Lighting electronics / Embedded systems | 10,001+ | reason: Dutch multinational with connected lighting products involving embedded electronics and English as a standard corporate language.
+- TomTom | https://www.tomtom.com | Navigation technology / Embedded systems | 1,001-5,000 | reason: Netherlands-based technology company with embedded navigation devices and automotive systems in an international English-speaking environment.
+
+2026-05-02 18:29:07 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- DENSO Belgium | https://www.denso.com/be/en/ | Automotive electronics / Embedded systems | 10,001+ | reason: Belgium presence of a major automotive electronics company with embedded systems work and international English-language operations.
+- Yokogawa Europe | https://www.yokogawa.com/eu/ | Industrial automation / Embedded control systems | 10,001+ | reason: European operations in the Netherlands with industrial control and embedded electronics relevance in an English-speaking international organization.
+- Mitsubishi Electric Europe B.V. | https://be.mitsubishielectric.com | Industrial electronics / Embedded systems | 10,001+ | reason: Benelux operations with industrial electronics and control systems relevant to embedded engineering, in an international English-language context.
+- ABB Benelux | https://new.abb.com/be | Industrial automation / Embedded control systems | 10,001+ | reason: Belgium and Netherlands presence with industrial electronics, robotics, and control systems involving embedded technologies in English-speaking international teams.
+- Atlas Copco Airtec / Portable Air | https://www.atlascopco.com | Industrial equipment / Embedded control systems | 10,001+ | reason: Belgium-based global industrial company with embedded control electronics in equipment and English-language international operations.
+- Daikin Europe | https://www.daikin.eu | HVAC electronics / Embedded systems | 10,001+ | reason: Belgium-based European HQ with embedded control electronics in HVAC products and international English-speaking operations.
+- Schréder | https://www.schreder.com | Lighting electronics / Embedded systems | 5,001-10,000 | reason: Belgium-based smart lighting company with connected electronic products and embedded systems relevance in global operations.
+- EVS Broadcast Equipment | https://evs.com | Broadcast technology / Embedded electronics | 501-1,000 | reason: Belgium-based hardware-centric broadcast technology company with embedded electronics and international English-language work.
+- Luminex Network Intelligence | https://www.luminex.be | Network hardware / Embedded electronics | 51-200 | reason: Belgium-based company building professional network hardware products with embedded electronics and firmware relevance.
+- QbD Group | https://www.qbdgroup.com | Life sciences engineering / embedded-adjacent devices | 1,001-5,000 | reason: Belgium-based engineering and consulting group with medical device ecosystem exposure; only moderate direct embedded electronics alignment.
+
+2026-05-02 18:29:14 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- Morrow Optics | https://www.morrowoptics.com | Photonics / Embedded electronics | 11-50 | reason: Belgium-based hardware startup with electronic system development in an English-speaking deep-tech environment.
+- Sentea | https://www.sentea.be | IoT / Embedded electronics | 11-50 | reason: Belgium-based IoT company with connected hardware and embedded electronics relevance, likely operating in English for technical work.
+- QinetiQ Space | https://www.qinetiq.com/en/what-we-do/services-and-products/space | Space systems / Embedded electronics | 1,001-5,000 | reason: Belgium-based space systems activity involving embedded electronics and international English-language engineering collaboration.
+- ExRobotics | https://www.exrobotics.com | Robotics / Embedded systems | 51-200 | reason: Netherlands-based robotics company with embedded control and electronics in inspection robots, likely using English in technical teams.
+- LioniX International | https://www.lionix-international.com | Photonics / Embedded electronics | 51-200 | reason: Netherlands-based photonics company with hardware system development and embedded control relevance in an international environment.
+- Bronkhorst | https://www.bronkhorst.com | Industrial instrumentation / Embedded electronics | 501-1,000 | reason: Dutch instrumentation company with embedded electronics and control systems in precision devices, operating internationally in English.
+- Sensata Technologies Netherlands | https://www.sensata.com | Sensors / Embedded electronics | 10,001+ | reason: Global sensor and controls company with Dutch operations and embedded electronics relevance in an English-speaking international organization.
+- Hyster-Yale Group Nijmegen | https://www.hyster-yale.com | Industrial vehicles / Embedded control systems | 5,001-10,000 | reason: Netherlands engineering presence with embedded control electronics in industrial vehicles and global English-language operations.
+- Damen Naval | https://www.damen.com/companies/damen-naval | Naval systems / Embedded electronics | 1,001-5,000 | reason: Dutch defense and naval systems company with embedded electronics and control systems in complex platforms, operating internationally in English.
+- Fugro | https://www.fugro.com | Geo-data technology / Embedded instrumentation | 10,001+ | reason: Dutch multinational with sensor, instrumentation, and embedded systems relevance in marine and remote operations, using English globally.
+
+2026-05-02 18:29:22 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- VanderSat | https://www.vandersat.com | Earth observation / embedded-adjacent hardware systems | 51-200 | reason: Netherlands-based space-tech company in an English-speaking environment; only partial direct embedded electronics alignment.
+- Robin Radar Systems | https://www.robinradar.com | Radar / Embedded electronics | 201-500 | reason: Dutch radar technology company with embedded electronics, signal processing hardware, and international English-language operations.
+- Thales Belgium | https://www.thalesgroup.com/en/countries/europe/belgium | Defense electronics / Embedded systems | 201-500 | reason: Belgium operations of Thales with embedded electronics and international English-speaking engineering work.
+- OnLogic Europe | https://www.onlogic.com | Industrial computing / Embedded hardware | 201-500 | reason: European operations in the Netherlands serving industrial and embedded computing markets in English-speaking international teams.
+- Acal BFi Benelux | https://www.acalbfi.com | Electronics distribution / Embedded systems ecosystem | 501-1,000 | reason: Benelux electronics specialist with embedded systems ecosystem relevance; lower confidence as a direct embedded engineering employer.
+- TKH Group | https://www.tkhgroup.com | Industrial technology / Embedded electronics | 5,001-10,000 | reason: Dutch technology group with smart vision, manufacturing, and connectivity products involving embedded electronics in international operations.
+- Nedap | https://www.nedap.com | Electronics / Embedded systems | 501-1,000 | reason: Netherlands-based technology company building connected hardware products with embedded electronics and English-language international work.
+- MTA Group Benelux | https://www.mta-group.com | Automotive electronics / Embedded systems | 1,001-5,000 | reason: Benelux presence in automotive electronics and embedded control products within an international business environment.
+- AAEON Europe B.V. | https://www.aaeon.eu | Embedded computing / Industrial electronics | 1,001-5,000 | reason: Netherlands-based European operation for embedded computing hardware, directly relevant to embedded electronics and international English-language work.
+- Advantech Europe B.V. | https://www.advantech.eu | Industrial computing / Embedded electronics | 5,001-10,000 | reason: European HQ in the Netherlands for a major embedded and industrial computing company, operating internationally in English.
+
+2026-05-02 18:29:30 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- Kontron Benelux | https://www.kontron.com | Embedded computing / Electronics | 5,001-10,000 | reason: Benelux operations of an embedded computing company with direct relevance to embedded electronics and international English-language collaboration.
+- Aito BV | https://www.aito.nl | Embedded systems / Electronics engineering | 11-50 | reason: Netherlands-based engineering company focused on embedded systems and electronics, making it a direct match for the requested industry.
+- Unit040 | https://www.unit040.com | Embedded software / Electronics engineering | 51-200 | reason: Dutch engineering company with embedded software and electronics focus in an international technical environment.
+- MTA bv | https://www.mtabv.nl | Embedded systems / Electronics engineering | 11-50 | reason: Netherlands-based company active in embedded systems and electronics engineering, directly aligned with the target industry.
+- Lely Industries | https://www.lely.com | Robotics / Embedded electronics | 1,001-5,000 | reason: Embedded electronics and control systems are core to its autonomous agricultural machines, and the company operates internationally in English from the Netherlands.
+- Ventioneers | https://www.ventioneers.com | Embedded systems / Product engineering | 11-50 | reason: Netherlands-based engineering firm focused on embedded systems and product development, likely suitable for software-to-embedded transitions.
+- Lobster Robotics | https://www.lobster-robotics.com | Robotics / Embedded electronics | 11-50 | reason: Netherlands-based robotics company with embedded control and electronics in autonomous systems, likely operating in English.
+- MantiSpectra | https://www.mantispectra.com | Sensor technology / Embedded electronics | 11-50 | reason: Dutch sensor startup developing hardware products with embedded electronics in an international English-speaking environment.
+- Salvia BioElectronics | https://www.salviabioelectronics.com | Medtech / Embedded electronics | 51-200 | reason: Netherlands-based medical device company developing implantable electronic systems with international English-language operations.
+- SMART Photonics | https://smartphotonics.nl | Photonics / Electronics manufacturing | 201-500 | reason: Dutch photonics company with hardware and electronics ecosystem relevance in an international English-speaking environment.
+
+2026-05-02 18:29:37 | llm-prompt-score-companies
+[1] system
+All inputs in this conversation are related to professional employment and work preferences. Interpret them only in that context. You score discovered companies against a candidate profile and the user's matching axes. For each company, return the company name, a percentage score from 0 to 100 for each axis, and an overall score from 0 to 100. Use the provided company list only. Axis names in the response must exactly match the provided axes.
+[2] human
+Simplified CV:
+Professional Profile
+
+Seniority:
+Senior QA Automation Engineer with multi-year experience across fintech and software product environments. Current role is senior-level, with prior QA automation roles in banking and B2B software.
+
+Core Expertise:
+QA automation in Java, API testing, UI testing, end-to-end and acceptance testing, test design, and test strategy. Also includes performance testing with Gatling, CI/CD automation, SQL, Git, Bash, and test management with Zephyr.
+
+Engineering Scope:
+Builds and improves automated test frameworks, API and E2E regression coverage, performance test projects, and CI/CD pipelines. Has worked across multiple services, release workflows, secure transaction test environments, and tooling for large-scale test data generation.
+
+Responsibility Signals:
+Has led QA process improvements, introduced structured risk analysis before feature testing, and owned initiatives such as CI/CD migration and crowdtesting coordination. Mentors junior QA staff, contributes to hiring through interviews, and has reported directly to executive leadership in at least one release-critical initiative.
+
+Delivery Orientation:
+Focuses on release readiness, regression stability, earlier bug detection, and reducing deployment and release preparation time. Evidence includes improving regression pass rate, shortening deployment cycles, integrating performance checks into merge requests, and establishing release management practices.
+
+Technical Depth:
+Strong evidence in Java-based automation, REST API testing, JUnit, TestNG, performance testing with Gatling, CI/CD with GitHub Actions and GitLab CI, SQL, and secure transaction testing involving Thales HSM10k. Familiarity with additional tools/frameworks is present but partially masked.
+
+Domain Context:
+Strong fintech and banking background, including payment systems, ATMs, customer-facing financial services, and secure transaction testing. Also has experience in queue management and engagement software, including support for AI-related product feature development through test data tooling.
+
+Education Signals:
+Degree in Electronics and Computer Engineering, which supports technical credibility for engineering-heavy QA and systems work.
+
+Certifications or Formal Training:
+AWS Solution Architect Associate certification is explicitly listed. No other formal certifications are stated.
+
+Work Context:
+Experience spans a large fintech/bank, a queue management and engagement software company, and a major banking group. Work appears to be in agile environments using Scrum and Kanban, with cross-functional collaboration involving developers, analysts, product owners, designers, AI teams, and leadership.
+
+Working Style Signals:
+Process-oriented and collaborative, with repeated evidence of working closely with developers and improving team testing practices. Shows mentoring, structured planning, analytical risk assessment, and comfort operating in cross-functional agile teams.
+
+Career Direction Signals:
+Profile is centered on senior QA automation roles with strong fintech fit, especially where API, backend, release quality, and performance testing matter. There is also a stated interest in applying AI tools to QA processes, supported by some adjacent experience enabling AI feature testing workflows.
+
+Constraints or Preferences:
+English is listed at full working proficiency. No explicit location, remote/hybrid preference, travel constraints, or role-type constraints are stated.
+
+Confidence Notes:
+High confidence on senior QA automation positioning, fintech/banking fit, Java/API/performance testing strengths, and mentoring/process ownership. Moderate confidence on breadth of UI automation and AI-related specialization because the relevant tooling and some details are masked or limited.
+
+Matching axes:
+- Embedded electronics focus: The company should operate in embedded electronics rather than being purely general software, so the environment is relevant to a move into embedded-oriented work.
+- Location match: The company should be based in or hiring in the Netherlands or Belgium.
+- English working environment: The company should operate in English to a degree that supports day-to-day work, collaboration, and hiring.
+- Career-switch openness: The company should be likely to consider candidates coming from backend/software backgrounds and transitioning into embedded electronics, rather than requiring a fully linear embedded-only career path.
+
+Companies to score:
+- Sentech Instruments Benelux | https://www.sentech.com | Instrumentation / Embedded electronics | 201-500 | reason: Benelux presence in instrumentation hardware with embedded electronics relevance and international English-language operations.
+- Qblox | https://qblox.com | Quantum control electronics / Embedded systems | 51-200 | reason: Netherlands-based company building advanced control electronics hardware in an English-speaking deep-tech environment.
+- Nearfield Instruments | https://www.nearfieldinstruments.com | Semiconductor equipment / Embedded control systems | 201-500 | reason: Dutch deep-tech company developing complex hardware systems with embedded control and electronics, operating internationally in English.
+- Settels Savenije | https://www.settels-savenije.nl | High-tech engineering / Embedded systems | 201-500 | reason: Netherlands-based engineering company active in mechatronics, electronics, and embedded systems for high-tech equipment.
+- Mikrocentrum | https://www.mikrocentrum.nl | High-tech / Embedded systems ecosystem | 51-200 | reason: Dutch high-tech network and training organization strongly connected to embedded electronics employers; lower confidence as a direct employer in embedded engineering.
+- Acal BFi Netherlands | https://www.acalbfi.com/nl | Electronics distribution / Embedded ecosystem | 501-1,000 | reason: Netherlands electronics specialist serving embedded markets; moderate relevance as a direct employer for embedded roles.
+- MikroElektronika Benelux | https://www.mikroe.com | Embedded development tools / Electronics | 201-500 | reason: Benelux-facing embedded tools company directly relevant to embedded electronics and English-language international operations.

@@ -1,0 +1,7 @@
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.env
+.venv/
+.chainlit/
+.mlruns/
