@@ -1,0 +1,35 @@
+{
+  "id": 8,
+  "name": "clinical_psychologist_ethical_healthcare_balance",
+  "profession": "Clinical Psychologist",
+  "experience": "trauma-focused therapy",
+  "goal": "ethical healthcare environment and work-life balance",
+  "pdf_path": "eval_data/fixtures/pdf/clinical_psychologist_cv_expanded.pdf",
+  "filter_criteria": [
+    "Scandinavia",
+    "mental healthcare",
+    "trauma therapy",
+    "clinic",
+    "hospital",
+    "nonprofit provider"
+  ],
+  "axes": [
+    "Healthcare system quality",
+    "Ethical standards",
+    "Burnout/workload balance"
+  ],
+  "communication_style": {
+    "description": "Warm, reflective and emotionally intelligent. Tends to explain motivations and concerns carefully. Often uses empathetic phrasing and discusses values, ethics and sustainability of work environment. Messages are usually medium-to-long and emotionally nuanced.",
+    "behavioral_traits": [
+      "warm",
+      "reflective",
+      "emotionally intelligent",
+      "explains motivations carefully",
+      "empathetic phrasing",
+      "values-driven",
+      "ethics-focused",
+      "emotionally nuanced"
+    ]
+  },
+  "first_prompt": "I'm looking at opportunities in Scandinavia, ideally in clinics, hospitals, or nonprofit mental-health providers where ethical standards and work-life balance are genuinely taken seriously. I care most about the quality of the healthcare system, the ethical environment, and whether the workload is sustainable enough to avoid burnout."
+}

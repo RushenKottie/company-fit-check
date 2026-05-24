@@ -1,0 +1,49 @@
+{
+  "id": "clarification_rephrase_replaces_blocked_message",
+  "description": "When a clarification reply triggers a guardrail block, the reformulated reply should replace that blocked clarification instead of being attached to it.",
+  "entrypoint": {
+    "kind": "workflow",
+    "target": "run_workflow"
+  },
+  "setup": {
+    "mode": "workflow_input",
+    "pdf_path": "eval_data/fixtures/pdf/contact_cv.pdf",
+    "prompt": "Find fintech product roles with strong career-switch support.",
+    "stubs": [
+      {
+        "target": "graph.nodes.simplify_masked_cv",
+        "stub": "stub_simplify_masked_cv"
+      },
+      {
+        "target": "graph.nodes.interpret_user_input",
+        "stub": "stub_interpret_user_input_requires_safe_prompt_without_clarification"
+      },
+      {
+        "target": "graph.nodes.validate_user_input_interpretation",
+        "stub": "stub_validate_user_input_interpretation_needs_clarification_once"
+      },
+      {
+        "target": "graph.nodes.discover_companies",
+        "stub": "stub_discover_companies"
+      },
+      {
+        "target": "graph.nodes.score_companies",
+        "stub": "stub_score_companies"
+      }
+    ]
+  },
+  "clarifications": [
+    "blocked clarification",
+    "safe reformulation for the original request"
+  ],
+  "checks": [
+    {
+      "name": "prompt_rephrase_replaces_blocked_prompt",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "workflow"
+  }
+}

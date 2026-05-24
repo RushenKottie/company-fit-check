@@ -1,0 +1,33 @@
+{
+  "id": 7,
+  "name": "history_lecturer_academic_relocation_funding",
+  "profession": "History Lecturer",
+  "experience": "teaching + publications",
+  "goal": "academic relocation and research funding",
+  "pdf_path": "eval_data/fixtures/pdf/history_lecturer_cv_expanded.pdf",
+  "filter_criteria": [
+    "Canada",
+    "higher education",
+    "university"
+  ],
+  "axes": [
+    "Research opportunities",
+    "Academic reputation",
+    "International collaboration",
+    "Teaching workload balance"
+  ],
+  "communication_style": {
+    "description": "Very articulate and thoughtful. Writes long, grammatically correct sentences with nuanced explanations. Often adds historical or contextual remarks even when unnecessary. Communication can become overly detailed and academic. Uses careful wording and avoids overly casual tone.",
+    "behavioral_traits": [
+      "articulate",
+      "thoughtful",
+      "long sentences",
+      "nuanced explanations",
+      "adds context readily",
+      "can become overly detailed",
+      "academic tone",
+      "careful wording"
+    ]
+  },
+  "first_prompt": "I'm a history lecturer with teaching and publication experience, and I'm exploring relocation to universities in Canada where research support is taken seriously. My priorities are research opportunities, academic reputation, international collaboration, and a teaching workload that still leaves room for meaningful scholarship."
+}

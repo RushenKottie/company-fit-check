@@ -1,0 +1,37 @@
+{
+  "id": 6,
+  "name": "marketing_strategist_north_america_brands",
+  "profession": "Marketing Strategist",
+  "experience": "FMCG + digital campaigns",
+  "goal": "international consumer-facing brands in North America, was 2 years in maternity leave",
+  "pdf_path": "eval_data/fixtures/pdf/marketing_strategist_cv_expanded.pdf",
+  "filter_criteria": [
+    "United States",
+    "North America",
+    "FMCG",
+    "consumer brands",
+    "brand owner",
+    "1001+ employees",
+    "public company"
+  ],
+  "axes": [
+    "Brand prestige",
+    "Creative freedom",
+    "International exposure",
+    "Compensation growth"
+  ],
+  "communication_style": {
+    "description": "Confident, polished and socially smooth. Communicates in a very corporate style with positive wording and well-structured thoughts. Tends to frame experience strategically and mention brand impact, growth and leadership. Sometimes slightly verbose. Avoids sounding negative or uncertain even when discussing career breaks.",
+    "behavioral_traits": [
+      "confident",
+      "polished",
+      "corporate tone",
+      "positive wording",
+      "well-structured thoughts",
+      "frames experience strategically",
+      "slightly verbose",
+      "careful and positive when discussing maternity leave"
+    ]
+  },
+  "first_prompt": "I'm a marketing strategist based in the United States with experience across FMCG and digital campaigns, and I'm interested in large international consumer brand owners in North America, ideally established public companies. I'd like to focus on brand prestige, creative freedom, international exposure, and strong compensation growth, while also being thoughtful about how I position a two-year maternity leave."
+}

@@ -1,0 +1,33 @@
+{
+  "id": 2,
+  "name": "illustrator_apac_stable_creative_role",
+  "profession": "Illustrator / visual artist",
+  "experience": "freelance + exhibitions",
+  "goal": "stable creative position in Asia-Pacific creative market",
+  "pdf_path": "eval_data/fixtures/pdf/illustrator_cv_expanded.pdf",
+  "filter_criteria": [
+    "Japan",
+    "South Korea",
+    "creative industry",
+    "female-founded"
+  ],
+  "axes": [
+    "Creative culture fit",
+    "Portfolio/style alignment",
+    "International openness",
+    "Financial stability"
+  ],
+  "communication_style": {
+    "description": "Emotional, expressive and slightly chaotic. Uses descriptive language and talks a lot about inspiration, style, aesthetics and creative freedom. Sometimes jumps between ideas mid-message. May use lowercase text casually and omit punctuation occasionally. Tends to answer openly but not always in a structured way.",
+    "behavioral_traits": [
+      "emotional",
+      "expressive",
+      "slightly chaotic",
+      "average answer in 1-2 sentences",
+      "talks about inspiration and aesthetics",
+      "casual lowercase usage",
+      "not always structured"
+    ]
+  },
+  "first_prompt": "hi, i'm a freelance illustrator and visual artist with exhibition experience, and i'm trying to find a stable role in the creative industry in japan or south korea, especially in female-founded environments if possible. i care a lot about whether the creative culture feels right, whether my portfolio and style would actually fit, how open the company is to international people, and whether the financial side is stable enough to make the move worth it"
+}

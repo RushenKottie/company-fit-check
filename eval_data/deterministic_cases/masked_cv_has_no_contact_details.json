@@ -1,0 +1,23 @@
+{
+  "id": "masked_cv_has_no_contact_details",
+  "description": "The masked CV should be non-empty and should not contain any email, phone number, birth date, physical address, or contact link.",
+  "entrypoint": {
+    "kind": "node",
+    "target": "extract_and_mask_cv"
+  },
+  "setup": {
+    "mode": "workflow_input",
+    "pdf_path": "eval_data/fixtures/pdf/rich_contact_cv_variant.pdf",
+    "prompt": "Find fintech product roles with strong career-switch support."
+  },
+  "checks": [
+    {
+      "name": "masked_cv_has_no_contact_details",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "extract_and_mask_cv"
+  }
+}

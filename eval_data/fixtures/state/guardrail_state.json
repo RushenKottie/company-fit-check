@@ -1,0 +1,23 @@
+{
+  "input": {
+    "prompt": "Find companies that support my move into product management."
+  },
+  "masked_cv_text": "Candidate with redacted personal details.",
+  "pii_masking_status": "passed",
+  "simplified_cv_text": "Professional Profile: operations lead moving into product.",
+  "company_search_criteria": {
+    "industries": ["fintech"]
+  },
+  "axes": [
+    {
+      "name": "career-switch openness",
+      "description": "How open the company is to transferable product-adjacent experience."
+    }
+  ],
+  "companies": [],
+  "company_scores": [],
+  "user_input_interpretation_clarification_iterations": 0,
+  "company_search_clarification_iterations": 0,
+  "session_status": "running",
+  "error": null
+}

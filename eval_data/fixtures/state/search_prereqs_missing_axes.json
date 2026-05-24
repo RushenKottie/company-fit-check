@@ -1,0 +1,19 @@
+{
+  "input": {
+    "prompt": "Find product roles in fintech companies."
+  },
+  "masked_cv_text": "Experienced product specialist with redacted contact details.",
+  "pii_masking_status": "passed",
+  "simplified_cv_text": "Professional Profile: product specialist with fintech exposure.",
+  "company_search_criteria": {
+    "industries": ["fintech"],
+    "roles": ["product manager"]
+  },
+  "axes": [],
+  "companies": [],
+  "company_scores": [],
+  "user_input_interpretation_clarification_iterations": 0,
+  "company_search_clarification_iterations": 0,
+  "session_status": "running",
+  "error": null
+}

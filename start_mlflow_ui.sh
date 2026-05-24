@@ -11,7 +11,7 @@ if [[ -f ".env" ]]; then
   set +a
 fi
 
-BACKEND_STORE_URI="${MLFLOW_TRACKING_URI:-file://$SCRIPT_DIR/.mlruns}"
+BACKEND_STORE_URI="${MLFLOW_TRACKING_URI:-sqlite:///$SCRIPT_DIR/.mlflow/mlflow.db}"
 
 exec "$SCRIPT_DIR/.venv/bin/mlflow" ui \
   --backend-store-uri "$BACKEND_STORE_URI" \

@@ -1,0 +1,32 @@
+{
+  "id": 5,
+  "name": "electrical_engineer_apac_industrial_companies",
+  "profession": "Electrical Engineer",
+  "experience": "manufacturing/automation",
+  "goal": "move into advanced industrial companies in APAC",
+  "pdf_path": "eval_data/fixtures/pdf/electrical_engineer_cv_expanded.pdf",
+  "filter_criteria": [
+    "Singapore",
+    "advanced manufacturing",
+    "industrial automation",
+    "industrial company"
+  ],
+  "axes": [
+    "Industrial innovation level",
+    "Engineering specialization fit",
+    "Technical growth opportunities"
+  ],
+  "communication_style": {
+    "description": "Short and somewhat dry communication style. Gives compact replies and often answers only the direct question without extra context. Sometimes uses technical shorthand or incomplete phrasing that still makes sense contextually. Not rude, just minimalistic. May occasionally forget punctuation.",
+    "behavioral_traits": [
+      "short replies",
+      "somewhat dry",
+      "compact answers",
+      "minimal context",
+      "uses technical shorthand",
+      "minimalistic",
+      "may forget punctuation"
+    ]
+  },
+  "first_prompt": "Electrical engineer, background in manufacturing and automation. Looking for industrial companies in Singapore, especially around advanced manufacturing and industrial automation. Main priorities are innovation level, fit with my specialization, and technical growth opportunities."
+}

@@ -1,0 +1,22 @@
+{
+  "id": "workflow_stops_on_masking_failure",
+  "description": "The workflow must stop immediately when masking validation fails.",
+  "entrypoint": {
+    "kind": "node",
+    "target": "validate_pii_masking"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/masking_failed_state.json"
+  },
+  "checks": [
+    {
+      "name": "workflow_stops_on_masking_failure",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "validate_pii_masking"
+  }
+}

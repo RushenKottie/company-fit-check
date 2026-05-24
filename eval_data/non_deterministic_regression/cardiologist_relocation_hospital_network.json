@@ -1,0 +1,35 @@
+{
+  "id": 1,
+  "name": "cardiologist_relocation_hospital_network",
+  "profession": "Cardiologist",
+  "experience": "12 years",
+  "goal": "relocation into high-quality hospital network",
+  "pdf_path": "eval_data/fixtures/pdf/cardiologist_cv_expanded.pdf",
+  "filter_criteria": [
+    "Switzerland",
+    "Germany",
+    "healthcare",
+    "hospital",
+    "academic medical center",
+    "1001+ employees"
+  ],
+  "axes": [
+    "Relocation/certification feasibility",
+    "Research opportunities",
+    "Compensation/stability"
+  ],
+  "communication_style": {
+    "description": "Very professional, structured and polite. Writes in full sentences with correct grammar and punctuation. Usually provides detailed context and answers questions carefully. Tends to sound slightly formal and analytical, especially when discussing hospitals, certifications or research. May occasionally overexplain medical background. Rarely uses slang or abbreviations.",
+    "behavioral_traits": [
+      "professional",
+      "structured",
+      "polite",
+      "slightly formal",
+      "analytical",
+      "answers questions carefully",
+      "may overexplain medical background",
+      "particularly attentive to certification recognition and language requirements"
+    ]
+  },
+  "first_prompt": "I'm exploring opportunities in Switzerland or Germany within large hospital systems and academic medical centers, and trying to understand how feasible the relocation and certification process would be, and whether there are meaningful research opportunities, and whether the compensation and long-term stability would justify the move.About me: I'm a cardiologist with 12 years of experience currently based in Armenia."
+}

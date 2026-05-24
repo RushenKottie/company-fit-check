@@ -1,0 +1,36 @@
+{
+  "id": 3,
+  "name": "ml_engineer_product_focused_ai_company",
+  "profession": "ML Engineer",
+  "experience": "MLOps + LLM applications",
+  "goal": "join product-focused AI company",
+  "pdf_path": "eval_data/fixtures/pdf/ml_engineer_cv_expanded.pdf",
+  "filter_criteria": [
+    "United Kingdom",
+    "AI software",
+    "machine learning platform",
+    "product startup",
+    "Series B",
+    "Series C"
+  ],
+  "axes": [
+    "AI technical maturity",
+    "ML infrastructure fit",
+    "Research/product balance",
+    "Visa sponsorship probability"
+  ],
+  "communication_style": {
+    "description": "Concise, technical and efficient. Frequently uses engineering terminology and abbreviations naturally. Gives direct answers with minimal emotional language. Sometimes writes semi-structured bullet-style messages even in chat. May skip greetings and filler text completely. Usually clear but can assume too much technical context.",
+    "behavioral_traits": [
+      "concise",
+      "technical",
+      "efficient",
+      "uses engineering terminology",
+      "direct answers",
+      "minimal emotional language",
+      "semi-structured phrasing",
+      "assumes technical context"
+    ]
+  },
+  "first_prompt": "I am ML engineer based in the UK on skill worker visa with experience in MLOps and LLM applications. I'm targeting product-focused AI software or machine-learning platform startups in the UK, ideally around Series B or Series C. Priorities: AI technical maturity, ML infrastructure quality, research/product balance, and realistic visa sponsorship probability."
+}

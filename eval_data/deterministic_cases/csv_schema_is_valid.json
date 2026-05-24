@@ -1,0 +1,22 @@
+{
+  "id": "csv_schema_is_valid",
+  "description": "A completed workflow state should generate a CSV file with the required columns and one row per scored company.",
+  "entrypoint": {
+    "kind": "helper",
+    "target": "build_results_csv"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/completed_state.json"
+  },
+  "checks": [
+    {
+      "name": "csv_schema_is_valid",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "build_results_csv"
+  }
+}

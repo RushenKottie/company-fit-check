@@ -9,6 +9,7 @@ description = "Minimal LangGraph scaffold for matching users with companies."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+  "anthropic",
   "azure-storage-blob",
   "chainlit",
   "langchain-core",
@@ -17,10 +18,15 @@ dependencies = [
   "mlflow",
   "presidio-analyzer",
   "presidio-anonymizer",
+  "pytest",
   "pypdf",
   "pydantic",
   "python-dotenv",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/company_fit_check"]
+only-include = ["src"]
+sources = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

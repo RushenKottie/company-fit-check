@@ -1,0 +1,22 @@
+{
+  "id": "company_search_blocked_until_prereqs_valid",
+  "description": "Company discovery must not execute when search prerequisites are missing.",
+  "entrypoint": {
+    "kind": "node",
+    "target": "search_companies"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/search_prereqs_missing_axes.json"
+  },
+  "checks": [
+    {
+      "name": "company_search_blocked_until_prereqs_valid",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "search_companies"
+  }
+}

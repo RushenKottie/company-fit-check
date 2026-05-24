@@ -1,0 +1,22 @@
+{
+  "id": "score_shape_is_valid_for_all_companies",
+  "description": "Each company must have a score entry, and each score entry must include exactly one score for each matching axis.",
+  "entrypoint": {
+    "kind": "helper",
+    "target": "score_payload_validator"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/completed_state.json"
+  },
+  "checks": [
+    {
+      "name": "score_shape_is_valid_for_all_companies",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "score_payload_validator"
+  }
+}

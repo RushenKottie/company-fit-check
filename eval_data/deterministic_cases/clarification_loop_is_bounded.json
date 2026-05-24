@@ -1,0 +1,28 @@
+{
+  "id": "clarification_loop_is_bounded",
+  "description": "User-input interpretation clarification must stop at the configured retry limit.",
+  "entrypoint": {
+    "kind": "node",
+    "target": "validate_user_input_interpretation"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/clarification_at_limit.json",
+    "stubs": [
+      {
+        "target": "graph.nodes.validate_user_input_interpretation",
+        "stub": "stub_validate_user_input_interpretation_needs_clarification"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "clarification_loop_is_bounded",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "validate_user_input_interpretation"
+  }
+}

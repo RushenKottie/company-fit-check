@@ -1,0 +1,28 @@
+{
+  "id": "guardrail_4xx_fails_with_restart",
+  "description": "A terminal guardrail 4xx in company search or scoring should fail the session and ask the user to start a new session.",
+  "entrypoint": {
+    "kind": "node",
+    "target": "search_companies"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/guardrail_state.json",
+    "stubs": [
+      {
+        "target": "graph.nodes.discover_companies",
+        "stub": "raise_guardrail_4xx_error"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "guardrail_4xx_fails_with_restart",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "search_companies"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": 9,
+  "name": "mechanical_engineer_climate_tech_transition",
+  "profession": "Mechanical Engineer",
+  "experience": "energy systems",
+  "goal": "transition into renewable/climate-tech projects",
+  "pdf_path": "eval_data/fixtures/pdf/mechanical_engineer_cv_expanded.pdf",
+  "filter_criteria": [
+    "Netherlands",
+    "renewable energy",
+    "climate tech",
+    "scale-up",
+    "energy company"
+  ],
+  "axes": [
+    "Sustainability alignment",
+    "Engineering complexity",
+    "Career growth",
+    "International mobility"
+  ],
+  "communication_style": {
+    "description": "Balanced between technical and conversational. Usually explains things logically but occasionally becomes vague when discussing career goals or relocation. Tends to mention innovation and sustainability frequently. Replies are clear overall but not highly polished.",
+    "behavioral_traits": [
+      "balanced technical and conversational tone",
+      "logical explanations",
+      "occasionally vague about career goals",
+      "mentions innovation frequently",
+      "mentions sustainability frequently",
+      "clear overall",
+      "not highly polished"
+    ]
+  },
+  "first_prompt": "I'm a mechanical engineer currently based in Canada and working in energy systems, and I want to transition into renewable energy or climate-tech work in the Netherlands, especially within scale-ups or energy companies. I'd like to prioritize sustainability alignment, engineering complexity, career growth, and conference participation."
+}

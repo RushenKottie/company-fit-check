@@ -1,0 +1,28 @@
+{
+  "id": "guardrail_4xx_fails_with_cv_cleanup",
+  "description": "A guardrail 4xx during CV simplification should fail the session and ask the user to clean the CV before starting a new session.",
+  "entrypoint": {
+    "kind": "node",
+    "target": "simplify_cv"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/guardrail_state.json",
+    "stubs": [
+      {
+        "target": "graph.nodes.simplify_masked_cv",
+        "stub": "raise_guardrail_4xx_error"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "guardrail_4xx_fails_with_cv_cleanup",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "simplify_cv"
+  }
+}

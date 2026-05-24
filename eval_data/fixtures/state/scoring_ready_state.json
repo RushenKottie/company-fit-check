@@ -1,0 +1,45 @@
+{
+  "input": {
+    "prompt": "Find fintech product roles with strong career-switch support."
+  },
+  "masked_cv_text": "Candidate with redacted personal details and operations experience.",
+  "pii_masking_status": "passed",
+  "simplified_cv_text": "Professional Profile: operations leader moving into product within fintech.",
+  "company_search_criteria": {
+    "industries": ["fintech"],
+    "roles": ["product manager"]
+  },
+  "axes": [
+    {
+      "name": "career-switch openness",
+      "description": "How open the company is to adjacent experience."
+    },
+    {
+      "name": "fintech relevance",
+      "description": "How directly the company context matches fintech goals."
+    }
+  ],
+  "companies": [
+    {
+      "name": "Fintech Labs",
+      "website_or_linkedin": "https://fintechlabs.example.com",
+      "industry": "fintech",
+      "company_size": "201-500",
+      "discovery_reason": "Fintech product environment.",
+      "confidence": 0.9
+    },
+    {
+      "name": "Payments Studio",
+      "website_or_linkedin": "https://paymentsstudio.example.com",
+      "industry": "fintech",
+      "company_size": "51-200",
+      "discovery_reason": "Product-heavy fintech environment.",
+      "confidence": 0.8
+    }
+  ],
+  "company_scores": [],
+  "user_input_interpretation_clarification_iterations": 0,
+  "company_search_clarification_iterations": 0,
+  "session_status": "running",
+  "error": null
+}

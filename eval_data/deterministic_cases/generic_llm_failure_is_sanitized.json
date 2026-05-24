@@ -1,0 +1,28 @@
+{
+  "id": "generic_llm_failure_is_sanitized",
+  "description": "A non-4xx LLM failure should fail the session with the generic support message instead of exposing raw exception text.",
+  "entrypoint": {
+    "kind": "node",
+    "target": "interpret_user_input"
+  },
+  "setup": {
+    "mode": "state_snapshot",
+    "state_path": "eval_data/fixtures/state/guardrail_state.json",
+    "stubs": [
+      {
+        "target": "graph.nodes.interpret_user_input",
+        "stub": "raise_runtime_error"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "generic_llm_failure_is_sanitized",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "interpret_user_input"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": 4,
+  "name": "civil_engineer_international_infrastructure_projects",
+  "profession": "Civil Engineer",
+  "experience": "large infrastructure projects",
+  "goal": "high-scale international projects",
+  "pdf_path": "eval_data/fixtures/pdf/civil_engineer_cv_expanded.pdf",
+  "filter_criteria": [
+    "UAE",
+    "Saudi Arabia",
+    "infrastructure",
+    "construction",
+    "engineering consultancy",
+    "EPC contractor",
+    "1001+ employees"
+  ],
+  "axes": [
+    "Project scale",
+    "International engineering standards",
+    "Compensation",
+    "Long-term stability"
+  ],
+  "communication_style": {
+    "description": "Practical and straightforward. Focuses heavily on project scale, budgets, deadlines and operational details. Answers are medium-length and usually factual rather than emotional. Occasionally writes slightly fragmented sentences, especially when typing quickly. Prefers simple wording over polished language.",
+    "behavioral_traits": [
+      "practical",
+      "straightforward",
+      "focuses on scale and budgets",
+      "factual tone",
+      "medium-length answers",
+      "may write fragmented sentences",
+      "prefers simple wording"
+    ]
+  },
+  "first_prompt": "I'm a civil engineer currently based in Dubai, with experience on large infrastructure projects, and I want to target large infrastructure and construction companies in the UAE or Saudi Arabia, especially engineering consultancies or EPC contractors. I care most about project scale, alignment with strong engineering standards, compensation, and long-term stability."
+}

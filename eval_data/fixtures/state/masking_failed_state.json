@@ -1,0 +1,14 @@
+{
+  "input": {
+    "prompt": "Find product roles in fintech companies."
+  },
+  "masked_cv_text": "",
+  "pii_masking_status": "failed",
+  "axes": [],
+  "companies": [],
+  "company_scores": [],
+  "user_input_interpretation_clarification_iterations": 0,
+  "company_search_clarification_iterations": 0,
+  "session_status": "running",
+  "error": null
+}

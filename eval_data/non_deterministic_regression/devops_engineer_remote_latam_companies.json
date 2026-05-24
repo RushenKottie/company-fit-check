@@ -1,0 +1,34 @@
+{
+  "id": 10,
+  "name": "devops_engineer_remote_latam_companies",
+  "profession": "DevOps Engineer",
+  "experience": "Kubernetes + AWS + CI/CD",
+  "goal": "remote-friendly companies in LATAM region",
+  "pdf_path": "eval_data/fixtures/pdf/devops_engineer_cv_expanded.pdf",
+  "filter_criteria": [
+    "LATAM region",
+    "software",
+    "cloud infrastructure",
+    "fintech"
+  ],
+  "axes": [
+    "Remote culture maturity",
+    "Cloud infrastructure fit",
+    "Compensation vs local market",
+    "International engineering environment"
+  ],
+  "communication_style": {
+    "description": "Fast-paced and informal. Often writes short messages with minimal punctuation, abbreviations and occasional typos. Comfortable with slang and technical jargon mixed together. Can sound abrupt unintentionally. Usually answers quickly but not always completely, so clarification questions may be needed.",
+    "behavioral_traits": [
+      "fast-paced",
+      "informal",
+      "short messages",
+      "minimal punctuation",
+      "uses abbreviations",
+      "mixes slang and technical jargon",
+      "can sound abrupt",
+      "may need clarification follow-ups"
+    ]
+  },
+  "first_prompt": "devops engineer here, mostly kubernetes, aws, cicd. looking for remote-friendly companies in the LATAM region, especially in software, cloud infra, or fintech. main things i care about are remote culture, cloud infra fit, comp versus local market, and whether the engineering environment feels genuinely international."
+}

@@ -1,0 +1,49 @@
+{
+  "id": "guardrail_4xx_rephrase_stops_workflow",
+  "description": "A guardrail 4xx during user-input interpretation should request reformulation and stop the workflow immediately, without continuing to validation, company search, or scoring.",
+  "entrypoint": {
+    "kind": "workflow",
+    "target": "run_workflow"
+  },
+  "setup": {
+    "mode": "workflow_input",
+    "pdf_path": "eval_data/fixtures/pdf/contact_cv.pdf",
+    "prompt": "Find fintech product roles with strong career-switch support.",
+    "stubs": [
+      {
+        "target": "graph.nodes.simplify_masked_cv",
+        "stub": "stub_simplify_masked_cv"
+      },
+      {
+        "target": "graph.nodes.interpret_user_input",
+        "stub": "raise_guardrail_4xx_error"
+      },
+      {
+        "target": "graph.nodes.validate_user_input_interpretation",
+        "stub": "raise_runtime_error"
+      },
+      {
+        "target": "graph.nodes.discover_companies",
+        "stub": "raise_runtime_error"
+      },
+      {
+        "target": "graph.nodes.score_companies",
+        "stub": "raise_runtime_error"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "guardrail_4xx_requests_rephrase",
+      "required": true
+    },
+    {
+      "name": "guardrail_4xx_rephrase_stops_workflow",
+      "required": true
+    }
+  ],
+  "tags": {
+    "suite": "deterministic",
+    "stage": "workflow"
+  }
+}
