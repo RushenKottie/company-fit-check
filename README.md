@@ -85,7 +85,8 @@ For Azure-backed artifact storage, set `MLFLOW_ARTIFACT_ROOT` to the remote
 artifact location and provide `AZURE_STORAGE_CONNECTION_STRING`. Local runs can
 leave both values empty.
 
-Start the MLflow monitoring UI in a separate terminal:
+Start the MLflow monitoring UI in a separate terminal with
+[start_mlflow_ui.sh](https://github.com/RushenKottie/company-fit-check/blob/main/start_mlflow_ui.sh):
 
 ```bash
 source .venv/bin/activate
@@ -95,7 +96,8 @@ source .venv/bin/activate
 By default, the MLflow UI is available at `http://127.0.0.1:5000`. You can
 override the host or port with `MLFLOW_UI_HOST` and `MLFLOW_UI_PORT`.
 
-Run the Chainlit chat interface:
+Run the Chainlit chat interface with
+[src/interfaces/chainlit/app.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/interfaces/chainlit/app.py):
 
 ```bash
 chainlit run src/interfaces/chainlit/app.py
@@ -132,21 +134,28 @@ experiments, and LLM-based evaluations.
 
 The deterministic layer is based on code validations. It verifies stable
 behavior that should not depend on LLM creativity or judge interpretation. Test
-cases live in `eval_data/deterministic_cases` as JSON files. Each case defines
+cases live in
+[eval_data/deterministic_cases](https://github.com/RushenKottie/company-fit-check/tree/main/eval_data/deterministic_cases)
+as JSON files. Each case defines
 the entrypoint to execute, setup data, optional stubs, clarification replies,
 and the checks that must pass.
 
-The core execution logic is in `src/evals/engine.py`. It loads the requested
-case, prepares workflow input or state snapshots, applies deterministic stubs
-from `src/evals/stubs.py`, runs the workflow, node, or helper entrypoint, and
-captures the resulting state, spans, artifacts, and errors. The code-based
-assertions live in `src/evals/checks.py`, where each named check validates one
-expected property such as PII masking, guardrail behavior, bounded
-clarification loops, score payload shape, or CSV schema.
+The core execution logic is in
+[src/evals/engine.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/engine.py).
+It loads the requested case, prepares workflow input or state snapshots, applies
+deterministic stubs from
+[src/evals/stubs.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/stubs.py),
+runs the workflow, node, or helper entrypoint, and captures the resulting state,
+spans, artifacts, and errors. The code-based assertions live in
+[src/evals/checks.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/checks.py),
+where each named check validates one expected property such as PII masking,
+guardrail behavior, bounded clarification loops, score payload shape, or CSV
+schema.
 
-The pytest entrypoint is `tests/evals/test_deterministic_suite.py`. It loads all
-deterministic cases, runs their requested checks, records metrics and artifacts
-to MLflow, and fails the suite if any required check fails.
+The pytest entrypoint is
+[tests/evals/test_deterministic_suite.py](https://github.com/RushenKottie/company-fit-check/blob/main/tests/evals/test_deterministic_suite.py).
+It loads all deterministic cases, runs their requested checks, records metrics
+and artifacts to MLflow, and fails the suite if any required check fails.
 
 Run the deterministic layer with:
 
@@ -162,20 +171,24 @@ Visual reference from the deterministic evaluation report in MLFlow:
 
 The non-deterministic regression layer validates full agent conversations where
 LLM behavior can vary between runs. Test cases live in
-`eval_data/non_deterministic_regression` as JSON files. Each case defines the
+[eval_data/non_deterministic_regression](https://github.com/RushenKottie/company-fit-check/tree/main/eval_data/non_deterministic_regression)
+as JSON files. Each case defines the
 simulated user's profession, background, first prompt, target filters, scoring
 axes, and communication style.
 
 ![LLM-as-judge regression flow](img/LLM_as_a_judge_flow.png)
 
-The core runner is `src/evals/regression_runner.py`. It is the central
-orchestrator for the regression lifecycle: it loads the selected cases, starts a
-real workflow session through the same Chainlit service entrypoints used by the
-app, coordinates the clarification loop with the user simulator, writes the
-transcript and generated CSV artifacts, calls the LLM-as-judge step, and logs
-run data, traces, artifacts, and judge results into the MLflow regression
-experiment. The user simulation logic lives in `src/user_simulator/service.py`,
-and the LLM-as-judge quality evaluation lives in `src/evals/judge.py`.
+The core runner is
+[src/evals/regression_runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/regression_runner.py).
+It is the central orchestrator for the regression lifecycle: it loads the
+selected cases, starts a real workflow session through the same Chainlit service
+entrypoints used by the app, coordinates the clarification loop with the user
+simulator, writes the transcript and generated CSV artifacts, calls the
+LLM-as-judge step, and logs run data, traces, artifacts, and judge results into
+the MLflow regression experiment. The user simulation logic lives in
+[src/user_simulator/service.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/user_simulator/service.py),
+and the LLM-as-judge quality evaluation lives in
+[src/evals/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/judge.py).
 
 **User simulator** is a component that simulates user behavior
 when the agent asks clarification questions. It calls a separate model with the
@@ -183,20 +196,23 @@ case data, communication style, first prompt, and latest agent message, using a
 higher temperature so replies are more variable while still staying grounded in
 the case definition.
 
-**Judging system** is configured in `src/evals/judge.py`, where the judge system
-prompt, metric names, and rubrics are defined. The current metrics are
-`clarification_quality`, `assumption_control`, and
+**Judging system** is configured in
+[src/evals/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/judge.py),
+where the judge system prompt, metric names, and rubrics are defined. The
+current metrics are `clarification_quality`, `assumption_control`, and
 `reasoning_relevance_constraint_alignment`. For each completed regression run,
 the runner sends the initial prompt, raw CV text, transcript, generated CSV, and
 rubrics to the judge model and expects structured scores from 1 to 5, where 1
 means clear failure, 3 means acceptable, and 5 means excellent. The threshold is
-defined in `src/evals/regression_runner.py`: if any component score is below 3,
-the run is marked as a judge-threshold failure; otherwise the overall score is
-the average of the component scores.
+defined in
+[src/evals/regression_runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/regression_runner.py):
+if any component score is below 3, the run is marked as a judge-threshold
+failure; otherwise the overall score is the average of the component scores.
 
-The pytest entrypoint is `tests/evals/test_llm_regression_runner.py`. It runs
-the configured regression cases, verifies that each conversation completes, and
-then relies on the regression runner to judge and log the result.
+The pytest entrypoint is
+[tests/evals/test_llm_regression_runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/tests/evals/test_llm_regression_runner.py).
+It runs the configured regression cases, verifies that each conversation
+completes, and then relies on the regression runner to judge and log the result.
 
 Run the full regression layer with:
 
@@ -245,4 +261,5 @@ generated dynamically and are not tied to stable expected outputs.
 
 This project is still in progress. Upcoming improvements, refinements, and
 evaluation adjustments will be tracked and handled through GitHub Issues so the
-work stays visible, scoped, and easy to prioritize.
+work stays visible, scoped, and easy to prioritize. The current WIP milestone is
+tracked in [Company Fit Check WIP Milestone 1](https://github.com/RushenKottie/company-fit-check/milestone/1).
