@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -18,9 +19,11 @@ from evals.models import (
     RegressionRunResult,
     TranscriptTurn,
 )
-from evals import repo_root
+from evals import eval_root, repo_root
+from evals.non_deterministic_case_loader import build_non_deterministic_case_index
+from evals.non_deterministic_models import NonDeterministicRegressionCase
 from interfaces.chainlit.service import continue_session, start_session
-from logging_utils import get_logger
+from logging_utils import configure_logging, get_logger
 from services.mlflow_tracking import bind_mlflow_experiment
 from config import get_mlflow_settings
 from models.input import UserInput
@@ -34,11 +37,10 @@ from services.mlflow_tracking import (
 )
 from services.pdf_text import extract_text_from_pdf_bytes
 from user_simulator import (
+    ConversationTurn,
     ReplyToAgentRequest,
     StartCaseRequest,
     UserSimulator,
-    create_default_user_simulator,
-    get_regression_case,
 )
 
 
@@ -51,12 +53,16 @@ class RegressionRunner:
     """Run non-deterministic regression conversations against the agent."""
 
     user_simulator: UserSimulator
+    case_index: Mapping[int, NonDeterministicRegressionCase]
     artifact_root: Path
+    experiment_name: str | None = None
+    case_source: str = "regression"
     max_clarification_turns: int = 8
 
     def run_case(self, case_id: int, *, suite_stamp: str | None = None) -> RegressionRunResult:
         """Run one regression case end to end and write its transcript artifacts."""
 
+        configure_logging()
         resolved_suite_stamp = suite_stamp or _suite_stamp()
         turns: list[TranscriptTurn] = []
         case_name = f"case_{case_id}"
@@ -67,8 +73,10 @@ class RegressionRunner:
         csv_artifact_path: str | None = None
 
         try:
-            with bind_mlflow_experiment(get_mlflow_settings().regression_experiment_name):
-                case = get_regression_case(case_id)
+            with bind_mlflow_experiment(
+                self.experiment_name or get_mlflow_settings().regression_experiment_name
+            ):
+                case = self._get_case(case_id)
                 start_response = self.user_simulator.start_case(StartCaseRequest(case_id=case_id))
                 case_name = start_response.case_name
                 pdf_path = start_response.pdf_path
@@ -90,6 +98,7 @@ class RegressionRunner:
                     case_id=case.id,
                     case_name=case.name,
                     case_payload=case.model_dump(mode="json"),
+                    case_source=self.case_source,
                 )
 
                 session_result = start_session(
@@ -113,6 +122,7 @@ class RegressionRunner:
                             run_id=run_id,
                             case_id=case_id,
                             agent_message=assistant_message,
+                            conversation=_simulator_conversation(turns[:-1]),
                         )
                     )
                     turns.append(_turn("user", simulator_reply.answer))
@@ -234,6 +244,14 @@ class RegressionRunner:
 
         return self.artifact_root / suite_stamp / str(case_id) / run_id
 
+    def _get_case(self, case_id: int) -> NonDeterministicRegressionCase:
+        """Return one runner case from the injected source."""
+
+        case = self.case_index.get(case_id)
+        if case is None:
+            raise ValueError(f"Unknown non-deterministic regression case id: {case_id}.")
+        return case
+
     def _judge_results(self, results: list[RegressionRunResult]) -> list[RegressionRunResult]:
         """Run the second-phase LLM judge over all case results."""
 
@@ -261,9 +279,7 @@ class RegressionRunner:
                     llm_called=False,
                 )
                 self._log_judge_outcome(result.run_id, outcome)
-                result.judge_status = outcome.judge_status
-                result.judge_error = outcome.judge_error
-                result.judge_result = outcome.model_dump(mode="json")
+                self._mark_unjudged_result_failed(result, outcome)
                 return
 
             csv_path = Path(result.csv_artifact_path)
@@ -274,9 +290,7 @@ class RegressionRunner:
                     llm_called=False,
                 )
                 self._log_judge_outcome(result.run_id, outcome)
-                result.judge_status = outcome.judge_status
-                result.judge_error = outcome.judge_error
-                result.judge_result = outcome.model_dump(mode="json")
+                self._mark_unjudged_result_failed(result, outcome)
                 return
 
             initial_prompt = _extract_initial_prompt(transcript_payload)
@@ -307,6 +321,8 @@ class RegressionRunner:
             result.judge_status = outcome.judge_status
             result.judge_error = outcome.judge_error
             result.judge_result = outcome.model_dump(mode="json")
+            if not llm_called:
+                self._mark_unjudged_result_failed(result, outcome)
             return
 
         judge_error = _build_judge_threshold_failure_error(response)
@@ -356,6 +372,29 @@ class RegressionRunner:
         result.judge_status = outcome.judge_status
         result.judge_error = outcome.judge_error
         result.judge_result = outcome.model_dump(mode="json")
+
+    def _mark_unjudged_result_failed(
+        self,
+        result: RegressionRunResult,
+        outcome: RegressionJudgeOutcome,
+    ) -> None:
+        """Mark a run failed when execution prevented LLM judging."""
+
+        result.status = "failed"
+        result.error = result.error or outcome.judge_error
+        result.judge_status = outcome.judge_status
+        result.judge_error = outcome.judge_error
+        result.judge_result = outcome.model_dump(mode="json")
+        self._rewrite_transcript_status(
+            result.transcript_path,
+            status=result.status,
+            error=result.error,
+        )
+        set_run_status_for_run(
+            result.run_id,
+            status=result.status,
+            error=result.error,
+        )
 
     def _log_judge_outcome(self, run_id: str, outcome: RegressionJudgeOutcome) -> None:
         """Persist judge request/result metadata onto the existing regression run."""
@@ -413,9 +452,30 @@ def run_cases(
 def create_default_regression_runner() -> RegressionRunner:
     """Return the default regression runner instance."""
 
+    settings = get_mlflow_settings()
+    case_index = build_non_deterministic_case_index(
+        eval_root() / "non_deterministic_regression"
+    )
     return RegressionRunner(
-        user_simulator=create_default_user_simulator(),
+        user_simulator=UserSimulator(case_index=case_index),
+        case_index=case_index,
         artifact_root=(repo_root() / "artifacts" / "regression").resolve(),
+        experiment_name=settings.regression_experiment_name,
+        case_source="regression",
+    )
+
+
+def create_mutation_regression_runner(case_dir: Path) -> RegressionRunner:
+    """Return a regression runner backed by generated mutation cases."""
+
+    settings = get_mlflow_settings()
+    case_index = build_non_deterministic_case_index(case_dir)
+    return RegressionRunner(
+        user_simulator=UserSimulator(case_index=case_index),
+        case_index=case_index,
+        artifact_root=(repo_root() / "artifacts" / "mutation_tests" / "runs").resolve(),
+        experiment_name=settings.mutation_experiment_name,
+        case_source="mutation",
     )
 
 
@@ -488,6 +548,15 @@ def _turn(speaker: str, message: str) -> TranscriptTurn:
         message=message,
         timestamp_utc=datetime.now(timezone.utc).isoformat(),
     )
+
+
+def _simulator_conversation(turns: list[TranscriptTurn]) -> list[ConversationTurn]:
+    """Return prior turns in the compact shape expected by the user simulator."""
+
+    return [
+        ConversationTurn(speaker=turn.speaker, message=turn.message)
+        for turn in turns
+    ]
 
 
 def _extract_initial_prompt(transcript_payload: dict) -> str:

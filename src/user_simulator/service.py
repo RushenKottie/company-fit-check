@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from functools import lru_cache
-from types import MappingProxyType
 from typing import Protocol
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from evals.non_deterministic_case_loader import load_non_deterministic_regression_cases
+from evals.non_deterministic_case_loader import build_non_deterministic_case_index
 from evals.non_deterministic_models import NonDeterministicRegressionCase
 from llm.client import create_user_simulator_chat_model
 from logging_utils import get_logger
 from user_simulator.models import (
+    ConversationTurn,
     ReplyToAgentRequest,
     ReplyToAgentResponse,
     StartCaseRequest,
@@ -31,19 +32,11 @@ class _SupportsInvoke(Protocol):
         """Return one chat completion object."""
 
 
-def _build_cases_by_id() -> MappingProxyType[int, NonDeterministicRegressionCase]:
-    """Build one read-only ``case_id -> case`` mapping from the case JSON files."""
-
-    cases = load_non_deterministic_regression_cases()
-    case_index = {case.id: case for case in cases}
-    return MappingProxyType(case_index)
-
-
 @lru_cache(maxsize=1)
-def load_cached_cases_by_id() -> MappingProxyType[int, NonDeterministicRegressionCase]:
+def load_cached_cases_by_id() -> Mapping[int, NonDeterministicRegressionCase]:
     """Load the case JSON files once, build a read-only ``case_id -> case`` map, and reuse it."""
 
-    return _build_cases_by_id()
+    return build_non_deterministic_case_index()
 
 
 def list_available_case_ids() -> list[int]:
@@ -52,28 +45,16 @@ def list_available_case_ids() -> list[int]:
     return sorted(load_cached_cases_by_id())
 
 
-def get_regression_case(case_id: int) -> NonDeterministicRegressionCase:
-    """Return one cached non-deterministic regression case by id."""
-
-    case = load_cached_cases_by_id().get(case_id)
-    if case is None:
-        raise UserSimulatorError(
-            "unknown_case_id",
-            f"Unknown non-deterministic regression case id: {case_id}.",
-        )
-    return case
-
-
 class UserSimulator:
     """Stateless runner-facing user simulator safe for concurrent calls."""
 
     def __init__(
         self,
         *,
-        case_index: MappingProxyType[int, NonDeterministicRegressionCase] | None = None,
+        case_index: Mapping[int, NonDeterministicRegressionCase] | None = None,
         llm: _SupportsInvoke | None = None,
     ) -> None:
-        self._case_index = case_index or load_cached_cases_by_id()
+        self._case_index = case_index if case_index is not None else load_cached_cases_by_id()
         self._llm = llm
 
     def start_case(self, request: StartCaseRequest) -> StartCaseResponse:
@@ -116,7 +97,7 @@ class UserSimulator:
                 "User simulator Anthropic Foundry model is not configured.",
             )
 
-        messages = self._build_reply_messages(case, agent_message)
+        messages = self._build_reply_messages(case, agent_message, request.conversation)
         try:
             response = llm.invoke(messages)
         except Exception as exc:  # pragma: no cover - exercised via unit tests with fakes
@@ -155,6 +136,7 @@ class UserSimulator:
         self,
         case: NonDeterministicRegressionCase,
         agent_message: str,
+        conversation: list[ConversationTurn],
     ) -> list[object]:
         """Build the text-only LLM prompt for one follow-up reply."""
 
@@ -163,6 +145,7 @@ class UserSimulator:
         )
         filter_criteria = "\n".join(f"- {criterion}" for criterion in case.filter_criteria)
         axes = "\n".join(f"- {axis}" for axis in case.axes)
+        conversation_so_far = _format_conversation(conversation)
 
         system_message = SystemMessage(
             content=(
@@ -246,6 +229,10 @@ class UserSimulator:
                 f"Axes:\n{axes}\n\n"
                 "Initial message previously sent by the user:\n"
                 f"{case.first_prompt}\n\n"
+                "Conversation so far:\n"
+                f"{conversation_so_far}\n\n"
+                "Latest agent message to answer:\n"
+                f"{agent_message}\n\n"
                 "Tone and structure guidance:\n"
                 f"Communication style: {case.communication_style.description}\n"
                 f"Behavioral traits:\n{behavioral_traits}\n\n"
@@ -272,6 +259,22 @@ class UserSimulator:
                     text_parts.append(item.text)
             return "\n".join(part.strip() for part in text_parts if part.strip()).strip()
         return str(content).strip()
+
+
+def _format_conversation(conversation: list[ConversationTurn]) -> str:
+    """Return a compact transcript block for simulator grounding."""
+
+    if not conversation:
+        return "No prior turns were provided."
+
+    lines: list[str] = []
+    for turn in conversation:
+        speaker = turn.speaker.strip().lower()
+        label = "User" if speaker == "user" else "Agent"
+        message = " ".join(turn.message.split())
+        if message:
+            lines.append(f"{label}: {message}")
+    return "\n".join(lines) or "No prior turns were provided."
 
 
 @lru_cache(maxsize=1)

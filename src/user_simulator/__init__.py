@@ -1,6 +1,7 @@
 """Stateless runner-facing user simulator APIs."""
 
 from user_simulator.models import (
+    ConversationTurn,
     ReplyToAgentRequest,
     ReplyToAgentResponse,
     StartCaseRequest,
@@ -10,11 +11,11 @@ from user_simulator.models import (
 from user_simulator.service import (
     UserSimulator,
     create_default_user_simulator,
-    get_regression_case,
     list_available_case_ids,
 )
 
 __all__ = [
+    "ConversationTurn",
     "ReplyToAgentRequest",
     "ReplyToAgentResponse",
     "StartCaseRequest",
@@ -22,6 +23,5 @@ __all__ = [
     "UserSimulator",
     "UserSimulatorError",
     "create_default_user_simulator",
-    "get_regression_case",
     "list_available_case_ids",
 ]

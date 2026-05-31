@@ -13,6 +13,9 @@ _LOG_DIR_NAME = ".tmp"
 _LOG_FILE_NAME = "company-fit-check.log"
 _AZURE_HTTP_LOGGER_NAME = "azure.core.pipeline.policies.http_logging_policy"
 _RESPONSE_STATUS_RE = re.compile(r"Response status:\s*'?(\d{3})'?")
+_APP_STREAM_HANDLER_ATTR = "_company_fit_check_stream_handler"
+_APP_FILE_HANDLER_ATTR = "_company_fit_check_file_handler"
+_AZURE_FILTER_ATTR = "_company_fit_check_filter"
 
 
 class _AzureHttpNoiseFilter(logging.Filter):
@@ -80,27 +83,51 @@ def write_debug_text_artifact(prefix: str, content: str) -> Path:
 
 
 def configure_logging() -> None:
-    """Configure application logging once per process."""
+    """Configure application logging and restore handlers if a framework resets them."""
 
     root_logger = logging.getLogger()
-    if getattr(configure_logging, "_configured", False):
-        return
+    first_configuration = not getattr(configure_logging, "_configured", False)
+    file_handler_added = False
 
     level_name = os.getenv("COMPANY_FIT_CHECK_LOG_LEVEL", "INFO").upper()
     level = getattr(logging, level_name, logging.INFO)
     formatter = logging.Formatter(_LOG_FORMAT)
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
-
-    file_handler = logging.FileHandler(get_log_file_path(), encoding="utf-8")
-    file_handler.setFormatter(formatter)
-
     root_logger.setLevel(level)
-    root_logger.addHandler(stream_handler)
-    root_logger.addHandler(file_handler)
-    logging.getLogger(_AZURE_HTTP_LOGGER_NAME).addFilter(_AzureHttpNoiseFilter())
+    if not _has_handler(root_logger, _APP_STREAM_HANDLER_ATTR):
+        stream_handler = logging.StreamHandler()
+        stream_handler.setFormatter(formatter)
+        setattr(stream_handler, _APP_STREAM_HANDLER_ATTR, True)
+        root_logger.addHandler(stream_handler)
+
+    if not _has_handler(root_logger, _APP_FILE_HANDLER_ATTR):
+        file_handler = logging.FileHandler(
+            get_log_file_path(),
+            mode="a",
+            encoding="utf-8",
+        )
+        file_handler.setFormatter(formatter)
+        setattr(file_handler, _APP_FILE_HANDLER_ATTR, True)
+        root_logger.addHandler(file_handler)
+        file_handler_added = True
+
+    azure_logger = logging.getLogger(_AZURE_HTTP_LOGGER_NAME)
+    if not any(getattr(filter_, _AZURE_FILTER_ATTR, False) for filter_ in azure_logger.filters):
+        azure_filter = _AzureHttpNoiseFilter()
+        setattr(azure_filter, _AZURE_FILTER_ATTR, True)
+        azure_logger.addFilter(azure_filter)
     configure_logging._configured = True
+    if first_configuration or file_handler_added:
+        logging.getLogger(__name__).info(
+            "Logging configured file=%s",
+            get_log_file_path(),
+        )
+
+
+def _has_handler(logger: logging.Logger, marker_attr: str) -> bool:
+    """Return whether a logger already has one of this module's handlers."""
+
+    return any(getattr(handler, marker_attr, False) for handler in logger.handlers)
 
 
 def get_logger(name: str) -> logging.Logger:

@@ -12,7 +12,7 @@ from interfaces.chainlit.presenters import (
     build_completion_message,
     build_failure_message,
 )
-from logging_utils import get_logger
+from logging_utils import configure_logging, get_logger
 from models.artifacts import GeneratedArtifact
 from models.input import UserInput
 from models.state import CompanyFitState
@@ -34,6 +34,7 @@ class SessionResult:
 def start_session(cv_pdf_bytes: bytes, prompt: str, run_id: str | None = None) -> SessionResult:
     """Start a new backend workflow session from a PDF CV and prompt."""
 
+    configure_logging()
     logger.info(
         "Starting UI workflow session pdf_bytes=%s prompt_length=%s",
         len(cv_pdf_bytes),
@@ -53,6 +54,7 @@ def continue_session(
 ) -> SessionResult:
     """Resume an existing backend workflow session with user clarification."""
 
+    configure_logging()
     logger.info(
         "Continuing UI workflow session target=%s response_length=%s",
         state.get("clarification_target"),
