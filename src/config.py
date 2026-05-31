@@ -67,6 +67,7 @@ class MlflowSettings:
     tracking_uri: str
     experiment_name: str
     regression_experiment_name: str
+    mutation_experiment_name: str
     artifact_root: str | None
     azure_storage_connection_string: str | None
 
@@ -216,6 +217,10 @@ def get_mlflow_settings() -> MlflowSettings:
         values.get("MLFLOW_REGRESSION_EXPERIMENT_NAME")
         or "company-fit-check-llm-regression"
     )
+    mutation_experiment_name = (
+        values.get("MLFLOW_MUTATION_EXPERIMENT_NAME")
+        or "company-fit-check-llm-mutation"
+    )
     artifact_root = values.get("MLFLOW_ARTIFACT_ROOT") or None
     azure_storage_connection_string = (
         values.get("AZURE_STORAGE_CONNECTION_STRING") or None
@@ -225,6 +230,7 @@ def get_mlflow_settings() -> MlflowSettings:
         tracking_uri=tracking_uri,
         experiment_name=experiment_name,
         regression_experiment_name=regression_experiment_name,
+        mutation_experiment_name=mutation_experiment_name,
         artifact_root=artifact_root,
         azure_storage_connection_string=azure_storage_connection_string,
     )

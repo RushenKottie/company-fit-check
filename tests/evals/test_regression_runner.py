@@ -9,6 +9,7 @@ from contextlib import contextmanager
 import conftest
 
 from evals.models import RegressionRunResult
+from evals.non_deterministic_models import NonDeterministicRegressionCase
 from evals.regression_runner import RegressionRunner
 from interfaces.chainlit.service import SessionResult
 from models.artifacts import GeneratedArtifact
@@ -36,6 +37,26 @@ class FakeSimulator:
             case_name="fake_case",
             answer="clarification answer",
         )
+
+
+def _fake_case_index() -> dict[int, NonDeterministicRegressionCase]:
+    return {
+        7: NonDeterministicRegressionCase(
+            id=7,
+            name="fake_case",
+            profession="Fake Engineer",
+            experience="5 years",
+            goal="Find matching companies.",
+            pdf_path="fake.pdf",
+            filter_criteria=["remote friendly"],
+            axes=["engineering culture"],
+            communication_style={
+                "description": "direct",
+                "behavioral_traits": ["concise"],
+            },
+            first_prompt="initial prompt",
+        )
+    }
 
 
 def test_parse_case_ids_option_handles_empty_and_csv_values():
@@ -79,7 +100,11 @@ def test_runner_writes_transcript_and_csv_for_completed_case(tmp_path, monkeypat
     monkeypatch.setattr("evals.regression_runner.start_session", fake_start_session)
     monkeypatch.setattr("evals.regression_runner.continue_session", fake_continue_session)
 
-    runner = RegressionRunner(user_simulator=FakeSimulator(str(pdf_path)), artifact_root=tmp_path)
+    runner = RegressionRunner(
+        user_simulator=FakeSimulator(str(pdf_path)),
+        case_index=_fake_case_index(),
+        artifact_root=tmp_path,
+    )
     result = runner.run_case(7, suite_stamp="suite")
 
     assert result == RegressionRunResult(
@@ -128,7 +153,11 @@ def test_runner_binds_regression_mlflow_experiment(tmp_path, monkeypatch):
     monkeypatch.setattr("evals.regression_runner.bind_mlflow_experiment", fake_bind_mlflow_experiment)
     monkeypatch.setattr("evals.regression_runner.start_session", fake_start_session)
 
-    runner = RegressionRunner(user_simulator=FakeSimulator(str(pdf_path)), artifact_root=tmp_path)
+    runner = RegressionRunner(
+        user_simulator=FakeSimulator(str(pdf_path)),
+        case_index=_fake_case_index(),
+        artifact_root=tmp_path,
+    )
     runner.run_case(7, suite_stamp="suite")
 
     assert bound_experiments == ["company-fit-check-llm-regression"]
@@ -146,7 +175,11 @@ def test_run_cases_preserves_requested_order_in_concurrent_mode(tmp_path):
                 transcript_path=str(tmp_path / f"{case_id}.json"),
             )
 
-    runner = RecordingRunner(user_simulator=FakeSimulator(), artifact_root=tmp_path)
+    runner = RecordingRunner(
+        user_simulator=FakeSimulator(),
+        case_index=_fake_case_index(),
+        artifact_root=tmp_path,
+    )
     results = runner.run_cases([4, 2, 9], concurrent=True, max_workers=3)
 
     assert [result.case_id for result in results] == [4, 2, 9]

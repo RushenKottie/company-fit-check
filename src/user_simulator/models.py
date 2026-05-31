@@ -24,6 +24,15 @@ class StartCaseResponse(BaseModel):
     pdf_path: str = Field(min_length=1)
 
 
+class ConversationTurn(BaseModel):
+    """One prior conversation turn supplied to the user simulator."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    speaker: str = Field(min_length=1)
+    message: str = Field(min_length=1)
+
+
 class ReplyToAgentRequest(BaseModel):
     """Request for a simulated user reply to the latest agent message."""
 
@@ -32,6 +41,7 @@ class ReplyToAgentRequest(BaseModel):
     run_id: str = Field(min_length=1)
     case_id: int
     agent_message: str = Field(min_length=1)
+    conversation: list[ConversationTurn] = Field(default_factory=list)
 
 
 class ReplyToAgentResponse(BaseModel):

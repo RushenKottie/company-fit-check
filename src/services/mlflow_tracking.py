@@ -491,6 +491,7 @@ def ensure_case_dataset_for_run(
     case_id: int,
     case_name: str,
     case_payload: dict[str, Any],
+    case_source: str = "regression",
 ) -> str | None:
     """Create or reuse one MLflow dataset for a regression case and link the run to it."""
 
@@ -506,20 +507,25 @@ def ensure_case_dataset_for_run(
         if experiment_id is None:
             return None
 
-        dataset_name = _build_case_dataset_name(case_id=case_id, case_name=case_name)
+        dataset_name = _build_case_dataset_name(case_id=case_id, case_source=case_source)
         dataset = _get_or_create_case_dataset(
             client,
             experiment_id=experiment_id,
             dataset_name=dataset_name,
             case_id=case_id,
             case_name=case_name,
+            case_source=case_source,
         )
+        client.set_tag(run_id, "case_source", case_source)
+        client.set_tag(run_id, "case_id", str(case_id))
+        client.set_tag(run_id, "case_name", case_name)
         client.set_dataset_tags(
             dataset.dataset_id,
             _build_case_dataset_tags(
                 case_id=case_id,
                 case_name=case_name,
                 case_payload=case_payload,
+                case_source=case_source,
             ),
         )
         client.log_inputs(
@@ -529,6 +535,7 @@ def ensure_case_dataset_for_run(
                     dataset=dataset._to_mlflow_entity(),
                     tags=[
                         InputTag(key="mlflow.data.context", value="evaluation"),
+                        InputTag(key="case_source", value=case_source),
                         InputTag(key="case_id", value=str(case_id)),
                     ],
                 )
@@ -584,10 +591,11 @@ def _create_session_run(user_input: UserInput) -> str:
     return run_id
 
 
-def _build_case_dataset_name(*, case_id: int, case_name: str) -> str:
+def _build_case_dataset_name(*, case_id: int, case_source: str) -> str:
     """Return one stable MLflow dataset name for a regression case."""
 
-    return f"regression_case_{case_id}"
+    source = re.sub(r"[^a-z0-9]+", "_", case_source.strip().lower()).strip("_")
+    return f"{source or 'regression'}_case_{case_id}"
 
 
 def _get_or_create_case_dataset(
@@ -597,6 +605,7 @@ def _get_or_create_case_dataset(
     dataset_name: str,
     case_id: int,
     case_name: str,
+    case_source: str,
 ):
     """Return one existing case dataset or create and associate it."""
 
@@ -614,7 +623,8 @@ def _get_or_create_case_dataset(
         name=dataset_name,
         experiment_id=[experiment_id],
         tags={
-            "suite": "llm_regression",
+            "suite": f"llm_{case_source}",
+            "case_source": case_source,
             "case_id": str(case_id),
             "case_name": case_name,
         },
@@ -626,12 +636,14 @@ def _build_case_dataset_tags(
     case_id: int,
     case_name: str,
     case_payload: dict[str, Any],
+    case_source: str,
 ) -> dict[str, Any]:
     """Return dataset tags that keep one readable case summary on the dataset object."""
 
     payload = _json_ready(case_payload)
     return {
-        "suite": "llm_regression",
+        "suite": f"llm_{case_source}",
+        "case_source": case_source,
         "case_id": str(case_id),
         "case_name": case_name,
         "profession": str(payload.get("profession") or ""),

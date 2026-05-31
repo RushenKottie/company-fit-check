@@ -77,6 +77,7 @@ directory by default.
 MLFLOW_TRACKING_URI=file:///absolute/path/to/company-fit-check/.mlruns
 MLFLOW_EXPERIMENT_NAME=company-fit-check
 MLFLOW_REGRESSION_EXPERIMENT_NAME=company-fit-check-llm-regression
+MLFLOW_MUTATION_EXPERIMENT_NAME=company-fit-check-llm-mutation
 MLFLOW_ARTIFACT_ROOT=
 AZURE_STORAGE_CONNECTION_STRING=
 ```
@@ -226,6 +227,12 @@ Run selected regression cases with:
 pytest tests/evals/test_llm_regression_runner.py --case-ids 1,8
 ```
 
+Run selected regression cases concurrently with:
+
+```bash
+pytest tests/evals/test_llm_regression_runner.py --case-ids 1,8 --concurrent --max-workers 2
+```
+
 This layer requires both the agent Azure OpenAI deployment and the user
 simulator Foundry deployment to be configured in `.env`. The LLM judge uses the
 main Azure OpenAI deployment by default unless `LLM_JUDGE_AZURE_OPENAI_*`
@@ -237,25 +244,55 @@ Visual reference from the non-deterministic regression report in MLflow:
 
 ### Evaluation Framework Engine: Mutation Tests Layer
 
-The mutation tests layer is planned for upcoming tasks. It will contain a small
-number of generated test cases rather than predefined fixtures stored in the
-project. A separate LLM, used through the user-simulation flow, will receive
-buckets of characteristics such as role, country, company type, goals,
-constraints, and communication style, then generate a fresh case for the agent
-to handle.
+The mutation tests layer validates the agent against freshly generated
+non-deterministic cases. Instead of using a fixed JSON fixture set, it builds a
+small suite at runtime from bucket definitions in
+[eval_data/mutation_tests/buckets.json](https://github.com/RushenKottie/company-fit-check/blob/main/eval_data/mutation_tests/buckets.json).
+The buckets contain professions, experience patterns, goals, regions, company
+filters, scoring axes, and communication-style traits. Each generated case also
+gets a fictional CV PDF and a first prompt that asks for a random number of
+companies between 5 and 50.
 
-These tests are intentionally not expected to produce stable results. Each run
-can introduce new combinations of roles, regions, industries, companies, and
-constraints. The goal is to see how the agent behaves on unfamiliar cases and
-how consistently the LLM judge evaluates outputs that were not part of the
-fixed regression set.
+The case generator is
+[src/evals/mutation_case_generator.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/mutation_case_generator.py).
+It samples compatible values from the buckets, writes generated case JSON files
+under `artifacts/mutation_tests/generated_cases`, writes matching PDF fixtures
+under `artifacts/mutation_tests/generated_pdfs`, and returns the generated case
+paths to the pytest entrypoint. The generated cases use the same schema as the
+non-deterministic regression cases, so they can reuse the same user simulator,
+conversation runner, transcript artifacts, CSV output, and LLM-as-judge flow.
 
-This layer is useful as a robustness check for both sides of the evaluation
-loop: the agent's ability to generalize beyond known scenarios, and the judge's
-ability to apply the same rubrics consistently to new, generated cases.
+The pytest entrypoint is
+[tests/evals/test_llm_mutation_cases.py](https://github.com/RushenKottie/company-fit-check/blob/main/tests/evals/test_llm_mutation_cases.py).
+It generates the mutation cases for the current suite, loads them through the
+non-deterministic case loader, runs them with the shared regression runner, and
+expects each run to complete and produce a transcript. Results are logged to the
+MLflow mutation experiment configured by `MLFLOW_MUTATION_EXPERIMENT_NAME`.
 
-All mutation-test results should be manually validated, because the cases are
-generated dynamically and are not tied to stable expected outputs.
+Run the mutation layer with:
+
+```bash
+pytest tests/evals/test_llm_mutation_cases.py
+```
+
+By default, the mutation layer generates 2 cases. Run a custom number of
+mutation cases with:
+
+```bash
+pytest tests/evals/test_llm_mutation_cases.py --mutation-count 5
+```
+
+Run mutation cases concurrently with:
+
+```bash
+pytest tests/evals/test_llm_mutation_cases.py --mutation-count 5 --concurrent --max-workers 2
+```
+
+This layer requires the same live model configuration as the non-deterministic
+regression layer: the agent Azure OpenAI deployment, the user simulator Foundry
+deployment, and the LLM judge configuration. Mutation-test results should still
+be manually validated, because the cases are generated dynamically and are not
+tied to stable expected outputs.
 
 ## Backlog
 
