@@ -6,9 +6,19 @@ import re
 
 from logging_utils import get_logger
 from models.artifacts import GeneratedArtifact
-from models.state import CompanyFitState
+from models.state import Axis, CompanyFitState
 
 logger = get_logger(__name__)
+
+RESULT_CSV_BASE_COLUMNS = (
+    "company_name",
+    "website_or_linkedin",
+    "location",
+    "industry",
+    "company_size",
+    "discovery_reason",
+    "overall_score",
+)
 
 
 def build_results_csv(state: CompanyFitState) -> GeneratedArtifact:
@@ -21,20 +31,8 @@ def build_results_csv(state: CompanyFitState) -> GeneratedArtifact:
     companies = state.get("companies", [])
     company_scores = state.get("company_scores", [])
     companies_by_name = {company.name: company for company in companies}
-    axis_columns = [
-        _build_axis_column_name(index=index, axis_name=axis.name)
-        for index, axis in enumerate(axes, start=1)
-    ]
-
-    fieldnames = [
-        "company_name",
-        "website_or_linkedin",
-        "industry",
-        "company_size",
-        "discovery_reason",
-        "overall_score",
-        *axis_columns,
-    ]
+    fieldnames = build_results_csv_fieldnames(axes)
+    axis_columns = fieldnames[len(RESULT_CSV_BASE_COLUMNS) :]
 
     buffer = io.StringIO(newline="")
     writer = csv.DictWriter(buffer, fieldnames=fieldnames)
@@ -52,6 +50,7 @@ def build_results_csv(state: CompanyFitState) -> GeneratedArtifact:
             "website_or_linkedin": (
                 company.website_or_linkedin if company is not None else ""
             ),
+            "location": company.location if company is not None else "",
             "industry": company.industry if company is not None else "",
             "company_size": company.company_size if company is not None else "",
             "discovery_reason": (
@@ -75,6 +74,19 @@ def build_results_csv(state: CompanyFitState) -> GeneratedArtifact:
         content_type="text/csv",
         content_bytes=buffer.getvalue().encode("utf-8"),
     )
+
+
+def build_results_csv_fieldnames(axes: list[Axis]) -> list[str]:
+    """Return the CSV field names for the given axes."""
+
+    return [*RESULT_CSV_BASE_COLUMNS, *_build_axis_column_names(axes)]
+
+
+def _build_axis_column_names(axes: list[Axis]) -> list[str]:
+    return [
+        _build_axis_column_name(index=index, axis_name=axis.name)
+        for index, axis in enumerate(axes, start=1)
+    ]
 
 
 def _build_axis_column_name(index: int, axis_name: str) -> str:

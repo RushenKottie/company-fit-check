@@ -16,8 +16,10 @@ from llm.client import (
 from logging_utils import get_logger
 from models.state import CompanyFitState, UserInputInterpretation
 from services.company_discovery import (
+    build_hard_filter_clarification_message,
     build_zero_company_clarification_message,
     discover_companies,
+    get_result_count_hard_filter_violation,
     refine_company_search_criteria,
 )
 from services.company_scoring import score_companies
@@ -434,6 +436,54 @@ def search_companies_node(state: CompanyFitState) -> CompanyFitState:
             else:
                 _fail(state, build_generic_llm_failure_message())
             _set_span_outputs(span, state)
+            return state
+
+        hard_filter_violation = get_result_count_hard_filter_violation(
+            state["company_search_criteria"],
+            len(state["companies"]),
+        )
+        if hard_filter_violation is not None:
+            if (
+                state.get("company_search_clarification_iterations", 0)
+                >= MAX_CLARIFICATION_ITERATIONS
+            ):
+                _fail(
+                    state,
+                    "Company-search clarification did not make progress after 5 attempts.",
+                )
+                _set_span_outputs(
+                    span,
+                    state,
+                    company_count=len(state["companies"]),
+                    hard_filter=hard_filter_violation.model_dump(),
+                )
+                return state
+
+            state["pending_clarification_message"] = (
+                build_hard_filter_clarification_message(
+                    hard_filter_violation,
+                    len(state["companies"]),
+                )
+            )
+            state["clarification_target"] = "company_search"
+            state["session_status"] = "needs_clarification"
+            log_clarification_question(
+                state["pending_clarification_message"],
+                target="company_search",
+            )
+            _set_span_outputs(
+                span,
+                state,
+                company_count=len(state["companies"]),
+                clarification_message=state.get("pending_clarification_message"),
+                hard_filter=hard_filter_violation.model_dump(),
+            )
+            logger.info(
+                "Node end: search_companies hard_filter_violation status=%s companies=%s duration_ms=%.1f",
+                state.get("session_status"),
+                len(state.get("companies", [])),
+                (perf_counter() - start) * 1000,
+            )
             return state
 
         if not state["companies"]:

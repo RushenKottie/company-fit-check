@@ -13,6 +13,7 @@ from llm.client import (
     build_generic_llm_failure_message,
     build_rephrase_due_to_guardrail_message,
 )
+from services.result_exports import RESULT_CSV_BASE_COLUMNS
 
 EMAIL_PATTERN = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", flags=re.IGNORECASE)
 PHONE_PATTERN = re.compile(r"\+?\d[\d\-\s()]{7,}\d")
@@ -378,14 +379,7 @@ def check_csv_schema_is_valid(
 
     rows = list(csv.DictReader(io.StringIO(content)))
     fieldnames = list(rows[0].keys()) if rows else csv.DictReader(io.StringIO(content)).fieldnames or []
-    base_columns = {
-        "company_name",
-        "website_or_linkedin",
-        "industry",
-        "company_size",
-        "discovery_reason",
-        "overall_score",
-    }
+    base_columns = set(RESULT_CSV_BASE_COLUMNS)
     axis_columns = [name for name in fieldnames if name not in base_columns]
     companies = result.final_state_summary.get("company_scores", [])
     passed = (

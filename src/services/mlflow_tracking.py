@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 import re
@@ -26,6 +27,17 @@ from models.input import UserInput
 from models.state import CompanyFitState
 
 logger = get_logger(__name__)
+_CASE_PAYLOAD_HASH_IGNORED_FIELDS = frozenset(
+    {
+        "pdf_path",
+        "case_path",
+        "run_id",
+        "suite_stamp",
+        "created_at_utc",
+        "updated_at_utc",
+        "generated_at_utc",
+    }
+)
 _ACTIVE_RUN_ID: ContextVar[str | None] = ContextVar("active_mlflow_run_id", default=None)
 _ACTIVE_EXPERIMENT_NAME: ContextVar[str | None] = ContextVar(
     "active_mlflow_experiment_name",
@@ -246,7 +258,11 @@ def update_current_trace_session(
     if not _is_tracking_enabled() or not session_id:
         return
 
-    kwargs: dict[str, Any] = {"session_id": session_id}
+    metadata = {
+        "mlflow.trace.session": session_id,
+        "mlflow.sourceRun": session_id,
+    }
+    kwargs: dict[str, Any] = {"metadata": metadata}
     if request_preview:
         kwargs["request_preview"] = request_preview
     if response_preview:
@@ -255,8 +271,8 @@ def update_current_trace_session(
     try:
         mlflow.update_current_trace(**kwargs)
     except TypeError:
-        # Older MLflow releases may not support the newer keyword arguments yet.
-        mlflow.update_current_trace(metadata={"mlflow.trace.session": session_id})
+        # Older MLflow releases may not support preview keyword arguments yet.
+        mlflow.update_current_trace(metadata=metadata)
 
 
 def log_text_artifact(artifact_path: str, content: str) -> None:
@@ -493,7 +509,7 @@ def ensure_case_dataset_for_run(
     case_payload: dict[str, Any],
     case_source: str = "regression",
 ) -> str | None:
-    """Create or reuse one MLflow dataset for a regression case and link the run to it."""
+    """Create or reuse one MLflow dataset for an evaluation case and link the run to it."""
 
     if not run_id or not _is_tracking_enabled():
         return None
@@ -507,8 +523,14 @@ def ensure_case_dataset_for_run(
         if experiment_id is None:
             return None
 
-        dataset_name = _build_case_dataset_name(case_id=case_id, case_source=case_source)
-        dataset = _get_or_create_case_dataset(
+        payload_hash = _case_payload_hash(case_payload)
+        dataset_name = _build_case_dataset_name(
+            case_id=case_id,
+            case_name=case_name,
+            case_payload=case_payload,
+            case_source=case_source,
+        )
+        dataset, created = _get_or_create_case_dataset(
             client,
             experiment_id=experiment_id,
             dataset_name=dataset_name,
@@ -519,15 +541,23 @@ def ensure_case_dataset_for_run(
         client.set_tag(run_id, "case_source", case_source)
         client.set_tag(run_id, "case_id", str(case_id))
         client.set_tag(run_id, "case_name", case_name)
-        client.set_dataset_tags(
-            dataset.dataset_id,
-            _build_case_dataset_tags(
-                case_id=case_id,
+        client.set_tag(run_id, "case_payload_hash", payload_hash)
+        if created:
+            client.set_dataset_tags(
+                dataset.dataset_id,
+                _build_case_dataset_tags(
+                    case_id=case_id,
+                    case_name=case_name,
+                    case_payload=case_payload,
+                    case_source=case_source,
+                ),
+            )
+            dataset = _upsert_case_dataset_record(
+                client,
+                dataset,
                 case_name=case_name,
                 case_payload=case_payload,
-                case_source=case_source,
-            ),
-        )
+            )
         client.log_inputs(
             run_id,
             datasets=[
@@ -537,6 +567,7 @@ def ensure_case_dataset_for_run(
                         InputTag(key="mlflow.data.context", value="evaluation"),
                         InputTag(key="case_source", value=case_source),
                         InputTag(key="case_id", value=str(case_id)),
+                        InputTag(key="case_payload_hash", value=payload_hash),
                     ],
                 )
             ],
@@ -591,11 +622,22 @@ def _create_session_run(user_input: UserInput) -> str:
     return run_id
 
 
-def _build_case_dataset_name(*, case_id: int, case_source: str) -> str:
-    """Return one stable MLflow dataset name for a regression case."""
+def _build_case_dataset_name(
+    *,
+    case_id: int,
+    case_name: str,
+    case_payload: dict[str, Any],
+    case_source: str,
+) -> str:
+    """Return one stable MLflow dataset name for an evaluation case."""
 
-    source = re.sub(r"[^a-z0-9]+", "_", case_source.strip().lower()).strip("_")
-    return f"{source or 'regression'}_case_{case_id}"
+    source = _slugify(case_source) or "regression"
+    payload = _json_ready(case_payload)
+    profession = _slugify(str(payload.get("profession") or case_name))
+    payload_hash = _case_payload_hash(payload)
+    if profession:
+        return f"{source}_case_{case_id}_{profession}_{payload_hash}"
+    return f"{source}_case_{case_id}_{payload_hash}"
 
 
 def _get_or_create_case_dataset(
@@ -607,7 +649,7 @@ def _get_or_create_case_dataset(
     case_name: str,
     case_source: str,
 ):
-    """Return one existing case dataset or create and associate it."""
+    """Return one case dataset and whether it was newly created."""
 
     matches = client.search_datasets(
         filter_string=f"name = '{dataset_name}'",
@@ -617,17 +659,20 @@ def _get_or_create_case_dataset(
         dataset = matches[0]
         if experiment_id not in dataset.experiment_ids:
             dataset = client.add_dataset_to_experiments(dataset.dataset_id, [experiment_id])
-        return dataset
+        return dataset, False
 
-    return client.create_dataset(
-        name=dataset_name,
-        experiment_id=[experiment_id],
-        tags={
-            "suite": f"llm_{case_source}",
-            "case_source": case_source,
-            "case_id": str(case_id),
-            "case_name": case_name,
-        },
+    return (
+        client.create_dataset(
+            name=dataset_name,
+            experiment_id=[experiment_id],
+            tags={
+                "suite": f"llm_{case_source}",
+                "case_source": case_source,
+                "case_id": str(case_id),
+                "case_name": case_name,
+            },
+        ),
+        True,
     )
 
 
@@ -641,7 +686,7 @@ def _build_case_dataset_tags(
     """Return dataset tags that keep one readable case summary on the dataset object."""
 
     payload = _json_ready(case_payload)
-    return {
+    tags = {
         "suite": f"llm_{case_source}",
         "case_source": case_source,
         "case_id": str(case_id),
@@ -650,6 +695,85 @@ def _build_case_dataset_tags(
         "pdf_path": str(payload.get("pdf_path") or ""),
         "updated_at_utc": _utc_now_iso(),
     }
+    tags["case_payload_hash"] = _case_payload_hash(payload)
+    return tags
+
+
+def _upsert_case_dataset_record(
+    client: MlflowClient,
+    dataset,
+    *,
+    case_name: str,
+    case_payload: dict[str, Any],
+):
+    """Store the current case payload as one dataset record."""
+
+    payload = _json_ready(case_payload)
+    _upsert_dataset_records(
+        dataset.dataset_id,
+        [_build_case_dataset_record(case_name=case_name, case_payload=payload)],
+    )
+    return client.get_dataset(dataset.dataset_id)
+
+
+def _build_case_dataset_record(
+    *,
+    case_name: str,
+    case_payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Return one MLflow dataset record preserving the case JSON in inputs."""
+
+    payload = _json_ready(case_payload)
+    return {
+        "inputs": payload,
+        "tags": {
+            "case_name": case_name,
+            "profession": str(payload.get("profession") or ""),
+            "case_payload_hash": _case_payload_hash(payload),
+            "updated_at_utc": _utc_now_iso(),
+        },
+    }
+
+
+def _upsert_dataset_records(dataset_id: str, records: list[dict[str, Any]]) -> None:
+    """Write records without MLflow's public session-field validation."""
+
+    from mlflow.tracking._tracking_service.utils import _get_store
+
+    # Public merge_records() reserves top-level "goal" for session datasets, but
+    # case inputs must match test-case.json exactly.
+    _get_store().upsert_dataset_records(dataset_id=dataset_id, records=records)
+
+
+def _case_payload_hash(payload: Any) -> str:
+    """Return a stable short hash for one case payload."""
+
+    normalized = json.dumps(
+        _case_identity_payload(payload),
+        ensure_ascii=True,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
+
+
+def _case_identity_payload(payload: Any) -> Any:
+    """Return the case fields that define dataset identity."""
+
+    value = _json_ready(payload)
+    if not isinstance(value, dict):
+        return value
+    return {
+        key: item
+        for key, item in value.items()
+        if key not in _CASE_PAYLOAD_HASH_IGNORED_FIELDS
+    }
+
+
+def _slugify(value: str) -> str:
+    """Return a compact lowercase slug for MLflow names and tags."""
+
+    return re.sub(r"[^a-z0-9]+", "_", value.strip().lower()).strip("_")
 
 
 def _update_run_metadata(run_id: str, state: CompanyFitState) -> None:

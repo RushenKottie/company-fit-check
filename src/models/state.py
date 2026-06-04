@@ -7,6 +7,40 @@ from pydantic import BaseModel, Field
 from models.input import UserInput
 
 
+HardFilterScope = Literal["result_set", "company_candidate", "unknown"]
+HardFilterOperator = Literal[
+    "exactly",
+    "at_least",
+    "at_most",
+    "greater_than",
+    "less_than",
+    "between",
+    "before",
+    "after",
+    "unknown",
+]
+
+
+class HardFilter(BaseModel):
+    """A concrete mandatory filter with a literal numeric/date/money value."""
+
+    text: str = Field(
+        description="Original or lightly normalized user requirement text."
+    )
+    scope: HardFilterScope = Field(
+        default="unknown",
+        description="Whether the filter applies to the result set or each company.",
+    )
+    operator: HardFilterOperator = Field(
+        default="unknown",
+        description="Comparison operator expressed by the user.",
+    )
+    value: str = Field(
+        default="",
+        description="Normalized literal value from the requirement.",
+    )
+
+
 class CompanySearchCriteria(BaseModel):
     """Common company-search criteria plus an escape hatch."""
 
@@ -18,6 +52,7 @@ class CompanySearchCriteria(BaseModel):
     must_have: list[str] = Field(default_factory=list)
     nice_to_have: list[str] = Field(default_factory=list)
     excluded: list[str] = Field(default_factory=list)
+    hard_filters: list[HardFilter] = Field(default_factory=list)
     undefined: list[str] = Field(default_factory=list)
 
 
@@ -40,6 +75,10 @@ class CompanyCandidate(BaseModel):
 
     name: str
     website_or_linkedin: str
+    location: str = Field(
+        default="",
+        description="Company headquarters or primary location in City, Country format.",
+    )
     industry: str
     company_size: str
     discovery_reason: str
