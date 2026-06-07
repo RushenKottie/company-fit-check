@@ -1,4 +1,4 @@
-"""Deterministic evaluation helpers and constants."""
+"""Evaluation helpers and constants."""
 
 from pathlib import Path
 

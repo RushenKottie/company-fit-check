@@ -168,10 +168,10 @@ Visual reference from the deterministic evaluation report in MLFlow:
 
 ![Deterministic evaluation report](img/determenistic_report.png)
 
-### Evaluation Framework Engine: Non-Deterministic Regression Layer
+### Evaluation Framework Engine: Non-Deterministic Layer
 
-The non-deterministic regression layer validates full agent conversations where
-LLM behavior can vary between runs. Test cases live in
+The non-deterministic layer validates full agent conversations where LLM
+behavior can vary between runs. The hand-authored regression cases live in
 [eval_data/non_deterministic_regression](https://github.com/RushenKottie/company-fit-check/tree/main/eval_data/non_deterministic_regression)
 as JSON files. Each case defines the
 simulated user's profession, background, first prompt, target filters, scoring
@@ -180,16 +180,16 @@ axes, and communication style.
 ![LLM-as-judge regression flow](img/LLM_as_a_judge_flow.png)
 
 The core runner is
-[src/evals/regression_runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/regression_runner.py).
-It is the central orchestrator for the regression lifecycle: it loads the
-selected cases, starts a real workflow session through the same Chainlit service
-entrypoints used by the app, coordinates the clarification loop with the user
+[src/evals/nondeterministic/runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/nondeterministic/runner.py).
+It is the central orchestrator for the non-deterministic lifecycle: it loads
+the selected cases, starts a real workflow session through the shared
+application session entrypoint, coordinates the clarification loop with the user
 simulator, writes the transcript and generated CSV artifacts, calls the
 LLM-as-judge step, and logs run data, traces, artifacts, and judge results into
-the MLflow regression experiment. The user simulation logic lives in
-[src/user_simulator/service.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/user_simulator/service.py),
+MLflow. The user simulation logic lives in
+[src/evals/user_simulator/service.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/user_simulator/service.py),
 and the LLM-as-judge quality evaluation lives in
-[src/evals/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/judge.py).
+[src/evals/nondeterministic/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/nondeterministic/judge.py).
 
 **User simulator** is a component that simulates user behavior
 when the agent asks clarification questions. It calls a separate model with the
@@ -198,7 +198,7 @@ higher temperature so replies are more variable while still staying grounded in
 the case definition.
 
 **Judging system** is configured in
-[src/evals/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/judge.py),
+[src/evals/nondeterministic/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/nondeterministic/judge.py),
 where the judge system prompt, metric names, and rubrics are defined. The
 current metrics are `clarification_quality`, `assumption_control`, and
 `reasoning_relevance_constraint_alignment`. For each completed regression run,
@@ -206,14 +206,15 @@ the runner sends the initial prompt, raw CV text, transcript, generated CSV, and
 rubrics to the judge model and expects structured scores from 1 to 5, where 1
 means clear failure, 3 means acceptable, and 5 means excellent. The threshold is
 defined in
-[src/evals/regression_runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/regression_runner.py):
+[src/evals/nondeterministic/runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/nondeterministic/runner.py):
 if any component score is below 3, the run is marked as a judge-threshold
 failure; otherwise the overall score is the average of the component scores.
 
 The pytest entrypoint is
 [tests/evals/test_llm_regression_runner.py](https://github.com/RushenKottie/company-fit-check/blob/main/tests/evals/test_llm_regression_runner.py).
 It runs the configured regression cases, verifies that each conversation
-completes, and then relies on the regression runner to judge and log the result.
+completes, and then relies on the non-deterministic runner to judge and log the
+result.
 
 Run the full regression layer with:
 
@@ -254,18 +255,18 @@ gets a fictional CV PDF and a first prompt that asks for a random number of
 companies between 5 and 50.
 
 The case generator is
-[src/evals/mutation_case_generator.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/mutation_case_generator.py).
+[src/evals/mutation/case_generator.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/mutation/case_generator.py).
 It samples compatible values from the buckets, writes generated case JSON files
 under `artifacts/mutation_tests/generated_cases`, writes matching PDF fixtures
 under `artifacts/mutation_tests/generated_pdfs`, and returns the generated case
 paths to the pytest entrypoint. The generated cases use the same schema as the
-non-deterministic regression cases, so they can reuse the same user simulator,
-conversation runner, transcript artifacts, CSV output, and LLM-as-judge flow.
+non-deterministic cases, so they can reuse the same user simulator, conversation
+runner, transcript artifacts, CSV output, and LLM-as-judge flow.
 
 The pytest entrypoint is
 [tests/evals/test_llm_mutation_cases.py](https://github.com/RushenKottie/company-fit-check/blob/main/tests/evals/test_llm_mutation_cases.py).
 It generates the mutation cases for the current suite, loads them through the
-non-deterministic case loader, runs them with the shared regression runner, and
+non-deterministic case loader, runs them with the shared non-deterministic runner, and
 expects each run to complete and produce a transcript. Results are logged to the
 MLflow mutation experiment configured by `MLFLOW_MUTATION_EXPERIMENT_NAME`.
 

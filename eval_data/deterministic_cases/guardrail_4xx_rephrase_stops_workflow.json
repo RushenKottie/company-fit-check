@@ -11,23 +11,23 @@
     "prompt": "Find fintech product roles with strong career-switch support.",
     "stubs": [
       {
-        "target": "graph.nodes.simplify_masked_cv",
+        "target": "application.workflow_actions.simplify_masked_cv",
         "stub": "stub_simplify_masked_cv"
       },
       {
-        "target": "graph.nodes.interpret_user_input",
+        "target": "application.workflow_actions.interpret_user_input",
         "stub": "raise_guardrail_4xx_error"
       },
       {
-        "target": "graph.nodes.validate_user_input_interpretation",
+        "target": "application.workflow_actions.validate_user_input_interpretation",
         "stub": "raise_runtime_error"
       },
       {
-        "target": "graph.nodes.discover_companies",
+        "target": "application.workflow_actions.discover_companies",
         "stub": "raise_runtime_error"
       },
       {
-        "target": "graph.nodes.score_companies",
+        "target": "application.workflow_actions.score_companies",
         "stub": "raise_runtime_error"
       }
     ]

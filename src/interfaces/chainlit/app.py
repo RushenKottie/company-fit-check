@@ -7,15 +7,15 @@ import uuid
 
 import chainlit as cl
 
+from application.session import (
+    SessionResult,
+    continue_session,
+    start_session,
+)
 from interfaces.chainlit.presenters import (
     build_missing_clarification_message,
     build_missing_initial_input_message,
     build_welcome_message,
-)
-from interfaces.chainlit.service import (
-    SessionResult,
-    continue_session,
-    start_session,
 )
 from interfaces.chainlit.session import (
     clear_workflow_state,

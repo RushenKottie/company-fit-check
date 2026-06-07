@@ -10,7 +10,7 @@
     "state_path": "eval_data/fixtures/state/guardrail_state.json",
     "stubs": [
       {
-        "target": "graph.nodes.interpret_user_input",
+        "target": "application.workflow_actions.interpret_user_input",
         "stub": "raise_runtime_error"
       }
     ]

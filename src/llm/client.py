@@ -5,7 +5,7 @@ import importlib
 import re
 from types import SimpleNamespace
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_openai import AzureChatOpenAI
 
@@ -91,7 +91,7 @@ def create_azure_chat_model() -> BaseChatModel | None:
 
     settings = get_azure_openai_settings()
     if not settings.is_configured:
-        logger.warning("Azure chat model requested but deployment is not configured.")
+        logger.warning("Azure chat model requested but required settings are incomplete.")
         return None
 
     logger.info(
@@ -102,6 +102,8 @@ def create_azure_chat_model() -> BaseChatModel | None:
         settings.temperature,
     )
     return AzureChatOpenAI(
+        api_key=settings.api_key,
+        azure_endpoint=settings.endpoint,
         azure_deployment=settings.deployment,
         api_version=settings.api_version,
         temperature=settings.temperature,
@@ -116,7 +118,7 @@ def create_user_simulator_azure_chat_model() -> BaseChatModel | None:
     settings = get_user_simulator_azure_openai_settings()
     if not settings.is_configured:
         logger.warning(
-            "User simulator Azure chat model requested but deployment is not configured."
+            "User simulator Azure chat model requested but required settings are incomplete."
         )
         return None
 
@@ -128,6 +130,8 @@ def create_user_simulator_azure_chat_model() -> BaseChatModel | None:
         settings.temperature,
     )
     return AzureChatOpenAI(
+        api_key=settings.api_key,
+        azure_endpoint=settings.endpoint,
         azure_deployment=settings.deployment,
         api_version=settings.api_version,
         temperature=settings.temperature,
@@ -168,7 +172,7 @@ def create_llm_judge_chat_model() -> BaseChatModel | None:
 
     settings = get_llm_judge_azure_openai_settings()
     if not settings.is_configured:
-        logger.warning("LLM judge chat model requested but deployment is not configured.")
+        logger.warning("LLM judge chat model requested but required settings are incomplete.")
         return None
 
     logger.info(
@@ -179,6 +183,8 @@ def create_llm_judge_chat_model() -> BaseChatModel | None:
         settings.temperature,
     )
     return AzureChatOpenAI(
+        api_key=settings.api_key,
+        azure_endpoint=settings.endpoint,
         azure_deployment=settings.deployment,
         api_version=settings.api_version,
         temperature=settings.temperature,

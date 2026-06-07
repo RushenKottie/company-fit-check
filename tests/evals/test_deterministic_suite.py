@@ -7,10 +7,10 @@ import json
 import mlflow
 
 from evals import EVAL_EXPERIMENT_NAME
-from evals.case_loader import load_eval_cases
-from evals.checks import run_requested_checks
-from evals.engine import execute_case
-from evals.mlflow_eval import (
+from evals.deterministic.case_loader import load_eval_cases
+from evals.deterministic.checks import run_requested_checks
+from evals.deterministic.engine import execute_case
+from evals.deterministic.mlflow_eval import (
     ensure_eval_experiment,
     log_json_artifact_to_active_run,
 )

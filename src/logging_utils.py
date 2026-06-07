@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 from datetime import datetime
 from pathlib import Path
+
+from config import get_logging_settings
 
 _LOG_FORMAT = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 _LOG_DIR_NAME = ".tmp"
@@ -89,7 +90,7 @@ def configure_logging() -> None:
     first_configuration = not getattr(configure_logging, "_configured", False)
     file_handler_added = False
 
-    level_name = os.getenv("COMPANY_FIT_CHECK_LOG_LEVEL", "INFO").upper()
+    level_name = get_logging_settings().level.upper()
     level = getattr(logging, level_name, logging.INFO)
     formatter = logging.Formatter(_LOG_FORMAT)
 
