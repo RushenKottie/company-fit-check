@@ -10,7 +10,7 @@
     "state_path": "eval_data/fixtures/state/guardrail_state.json",
     "stubs": [
       {
-        "target": "graph.nodes.discover_companies",
+        "target": "application.workflow_actions.discover_companies",
         "stub": "raise_guardrail_4xx_error"
       }
     ]

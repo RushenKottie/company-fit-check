@@ -10,7 +10,7 @@
     "state_path": "eval_data/fixtures/state/clarification_at_limit.json",
     "stubs": [
       {
-        "target": "graph.nodes.validate_user_input_interpretation",
+        "target": "application.workflow_actions.validate_user_input_interpretation",
         "stub": "stub_validate_user_input_interpretation_needs_clarification"
       }
     ]

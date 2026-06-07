@@ -10,7 +10,7 @@ from config import (
     get_azure_openai_settings,
     get_user_simulator_foundry_settings,
 )
-from evals.regression_runner import run_cases
+from evals.nondeterministic.runner import run_cases
 
 
 def _llm_regression_is_configured() -> bool:

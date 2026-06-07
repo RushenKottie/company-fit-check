@@ -10,7 +10,7 @@
     "state_path": "eval_data/fixtures/state/guardrail_state.json",
     "stubs": [
       {
-        "target": "graph.nodes.simplify_masked_cv",
+        "target": "application.workflow_actions.simplify_masked_cv",
         "stub": "raise_guardrail_4xx_error"
       }
     ]

@@ -8,12 +8,12 @@ from contextlib import contextmanager
 
 import conftest
 
-from evals.models import RegressionRunResult
-from evals.non_deterministic_models import NonDeterministicRegressionCase
-from evals.regression_runner import RegressionRunner
-from interfaces.chainlit.service import SessionResult
+from application.session import SessionResult
+from evals.nondeterministic.case_models import NondeterministicCase
+from evals.nondeterministic.models import NondeterministicRunResult
+from evals.nondeterministic.runner import NondeterministicRunner
+from evals.user_simulator.models import ReplyToAgentResponse, StartCaseResponse
 from models.artifacts import GeneratedArtifact
-from user_simulator.models import ReplyToAgentResponse, StartCaseResponse
 
 
 class FakeSimulator:
@@ -39,9 +39,9 @@ class FakeSimulator:
         )
 
 
-def _fake_case_index() -> dict[int, NonDeterministicRegressionCase]:
+def _fake_case_index() -> dict[int, NondeterministicCase]:
     return {
-        7: NonDeterministicRegressionCase(
+        7: NondeterministicCase(
             id=7,
             name="fake_case",
             profession="Fake Engineer",
@@ -97,17 +97,17 @@ def test_runner_writes_transcript_and_csv_for_completed_case(tmp_path, monkeypat
             ),
         )
 
-    monkeypatch.setattr("evals.regression_runner.start_session", fake_start_session)
-    monkeypatch.setattr("evals.regression_runner.continue_session", fake_continue_session)
+    monkeypatch.setattr("evals.nondeterministic.runner.start_session", fake_start_session)
+    monkeypatch.setattr("evals.nondeterministic.runner.continue_session", fake_continue_session)
 
-    runner = RegressionRunner(
+    runner = NondeterministicRunner(
         user_simulator=FakeSimulator(str(pdf_path)),
         case_index=_fake_case_index(),
         artifact_root=tmp_path,
     )
     result = runner.run_case(7, suite_stamp="suite")
 
-    assert result == RegressionRunResult(
+    assert result == NondeterministicRunResult(
         case_id=7,
         case_name="fake_case",
         run_id="run-123",
@@ -150,10 +150,10 @@ def test_runner_binds_regression_mlflow_experiment(tmp_path, monkeypatch):
             }
         )
 
-    monkeypatch.setattr("evals.regression_runner.bind_mlflow_experiment", fake_bind_mlflow_experiment)
-    monkeypatch.setattr("evals.regression_runner.start_session", fake_start_session)
+    monkeypatch.setattr("evals.nondeterministic.runner.bind_mlflow_experiment", fake_bind_mlflow_experiment)
+    monkeypatch.setattr("evals.nondeterministic.runner.start_session", fake_start_session)
 
-    runner = RegressionRunner(
+    runner = NondeterministicRunner(
         user_simulator=FakeSimulator(str(pdf_path)),
         case_index=_fake_case_index(),
         artifact_root=tmp_path,
@@ -164,9 +164,9 @@ def test_runner_binds_regression_mlflow_experiment(tmp_path, monkeypatch):
 
 
 def test_run_cases_preserves_requested_order_in_concurrent_mode(tmp_path):
-    class RecordingRunner(RegressionRunner):
-        def run_case(self, case_id: int, *, suite_stamp: str | None = None) -> RegressionRunResult:
-            return RegressionRunResult(
+    class RecordingRunner(NondeterministicRunner):
+        def run_case(self, case_id: int, *, suite_stamp: str | None = None) -> NondeterministicRunResult:
+            return NondeterministicRunResult(
                 case_id=case_id,
                 case_name=f"case_{case_id}",
                 run_id=f"run-{case_id}",

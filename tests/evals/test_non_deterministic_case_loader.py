@@ -1,10 +1,10 @@
 """Schema checks for non-deterministic regression case files."""
 
-from evals.non_deterministic_case_loader import load_non_deterministic_regression_cases
+from evals.nondeterministic.case_loader import load_nondeterministic_cases
 
 
 def test_non_deterministic_regression_cases_load_and_match_expected_shape():
-    cases = load_non_deterministic_regression_cases()
+    cases = load_nondeterministic_cases()
 
     assert len(cases) == 10
     assert {case.id for case in cases} == set(range(1, 11))

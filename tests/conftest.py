@@ -14,8 +14,8 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 
-from user_simulator import list_available_case_ids
-from evals.mutation_case_generator import MUTATION_CASE_COUNT
+from evals.mutation.case_generator import MUTATION_CASE_COUNT
+from evals.user_simulator import list_available_case_ids
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

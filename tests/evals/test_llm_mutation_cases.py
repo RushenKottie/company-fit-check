@@ -11,13 +11,13 @@ from config import (
     get_azure_openai_settings,
     get_user_simulator_foundry_settings,
 )
-from evals.mutation_case_generator import (
+from evals.mutation.case_generator import (
     DEFAULT_OUTPUT_DIR,
     DEFAULT_PDF_OUTPUT_DIR,
     generate_mutation_case_files,
 )
-from evals.non_deterministic_case_loader import load_non_deterministic_regression_cases
-from evals.regression_runner import create_mutation_regression_runner
+from evals.nondeterministic.case_loader import load_nondeterministic_cases
+from evals.nondeterministic.runner import create_mutation_runner
 
 
 def _llm_mutation_is_configured() -> bool:
@@ -49,13 +49,13 @@ def test_llm_mutation_cases(
     )
     assert len(generated_paths) == eval_mutation_count
 
-    cases = load_non_deterministic_regression_cases(case_dir)
+    cases = load_nondeterministic_cases(case_dir)
     assert len(cases) == eval_mutation_count
 
     case_ids = [case.id for case in cases]
     assert len(case_ids) == eval_mutation_count
 
-    runner = create_mutation_regression_runner(case_dir)
+    runner = create_mutation_runner(case_dir)
     results = runner.run_cases(
         case_ids,
         concurrent=eval_concurrent,
