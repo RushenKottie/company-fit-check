@@ -1,6 +1,6 @@
 """Workflow retry and clarification policy."""
 
-from llm.client import (
+from application.messages import (
     build_rephrase_retry_exhausted_message,
     is_guardrail_rephrase_message,
 )
@@ -10,9 +10,6 @@ MAX_CLARIFICATION_ITERATIONS = 5
 USER_INPUT_CLARIFICATION_EXHAUSTED_MESSAGE = (
     "User-input interpretation clarification did not make progress after 5 attempts."
 )
-COMPANY_SEARCH_CLARIFICATION_EXHAUSTED_MESSAGE = (
-    "Company-search clarification did not make progress after 5 attempts."
-)
 
 
 def user_input_clarification_limit_reached(state: CompanyFitState) -> bool:
@@ -20,15 +17,6 @@ def user_input_clarification_limit_reached(state: CompanyFitState) -> bool:
 
     return (
         state.get("user_input_interpretation_clarification_iterations", 0)
-        >= MAX_CLARIFICATION_ITERATIONS
-    )
-
-
-def company_search_clarification_limit_reached(state: CompanyFitState) -> bool:
-    """Return whether company-search clarification attempts are exhausted."""
-
-    return (
-        state.get("company_search_clarification_iterations", 0)
         >= MAX_CLARIFICATION_ITERATIONS
     )
 

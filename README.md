@@ -1,22 +1,23 @@
 # Executive Summary
 
-`company-fit-check` is a project with two connected parts. The first is the agent itself. The second is a full-cycle evaluation framework
-used to validate and measure agent quality.
-
-The agent is designed for a user who wants to explore companies aligned with
-their professional background, goals, and interests without wasting time on
-random search or random outreach. The user provides their background and goals,
-the agent helps identify relevant companies, and the resulting company list can
-be used to guide more targeted networking or outreach through LinkedIn or other
-channels toward people with similar professional interests.
-
-The evaluation framework exists to keep that agent useful, safe, and efficient.
-It covers the full workflow from deterministic checks of stable system behavior
-to end-to-end regression conversations with a user simulator, artifact
-generation, LLM-based quality judgment, and mutation tests to catch edge cases
-and validate evaluation strength more deeply.
+- Problem: Job seekers and professionals often waste time on broad company
+  searches and untargeted outreach that do not reflect their background, goals,
+  or interests.
+- Solution: `company-fit-check` uses an agent to turn a user's background and
+  goals into a focused company list, supported by a full-cycle evaluation
+  framework that validates agent quality across deterministic checks,
+  end-to-end regression conversations, LLM-based judgment, and mutation tests.
+- Why it matters: The project helps users find more relevant companies and make
+  better-targeted networking or outreach decisions while keeping the agent
+  useful, safe, and efficient as it evolves.
 
 ## Architecture
+
+The agent follows a guided workflow: it collects the user's CV and goals,
+removes sensitive personal information, interprets the user's company
+preferences, discovers and scores matching companies, and returns a structured
+shortlist. LangGraph coordinates the workflow steps, including clarification
+loops when the user input is incomplete.
 
 The diagram below shows the current agent workflow architecture and routing
 logic.
@@ -25,23 +26,68 @@ logic.
 
 ## Technical Stack
 
+### Core Language
+
 - Python - main programming language for the agent, workflow, services, and
   evaluation framework.
+
+### Workflow and Tools
+
 - LangGraph - graph orchestration layer for agent nodes, routing, resume logic,
   clarification loops, and terminal states.
 - LangChain - chat model integration layer used by the workflow services.
-- Azure OpenAI - hosted LLM provider for CV simplification, user-input
-  interpretation, company discovery, company scoring, and LLM judge calls.
-- Microsoft Foundry AI - model hosting path for the user simulator, including
-  Anthropic Foundry integration.
+
+### LLM Access
+
+- Azure OpenAI - access layer for LLM calls used in CV simplification,
+  user-input interpretation, company discovery, company scoring, and LLM judge
+  evaluation.
+- Microsoft Foundry AI - AI platform used to access and manage LLMs for the
+  user simulator, including Anthropic Foundry integration.
+
+### UI
+
 - Chainlit - lightweight chat UI interface for interactive user sessions.
+
+### Evaluation and Observability
+
 - MLflow - experiment tracking, traces, metrics, and workflow artifacts for
   deterministic and regression evaluation runs.
+- pytest - deterministic evaluation execution and regression test support.
+
+### Storage
+
 - Azure Blob Storage - remote artifact storage for MLflow-backed runs when
   configured.
+
+### Privacy and Data Protection
+
 - Microsoft Presidio - local PII detection and anonymization before CV text is
   sent into LLM-powered workflow steps.
-- pytest - deterministic evaluation execution and regression test support.
+
+## Code Structure
+
+The codebase is organized around the agent workflow, the supporting services,
+and the evaluation framework:
+
+- `src/graph` - LangGraph workflow definition, node names, routing logic, and
+  graph assembly.
+- `src/application` - application-level workflow state, session handling,
+  messages, transitions, policies, and exported results.
+- `src/services` - domain services for PDF text extraction, PII masking, CV
+  simplification, user-input interpretation, company discovery, and company
+  scoring.
+- `src/llm` - shared LLM client setup used by workflow services and evaluation
+  components.
+- `src/interfaces/chainlit` - Chainlit chat interface, session integration, and
+  presentation helpers.
+- `src/infrastructure` - MLflow tracking, artifact handling, tracing, and
+  dataset management utilities.
+- `src/evals` - deterministic, non-deterministic, mutation, and user-simulator
+  evaluation logic.
+- `eval_data` - evaluation cases, fixture CVs, saved workflow states, and
+  mutation configuration.
+- `img` - architecture and evaluation diagrams used in this README.
 
 ## How to Run
 
@@ -107,6 +153,21 @@ chainlit run src/interfaces/chainlit/app.py
 Then open the local Chainlit URL shown in the terminal, upload a CV PDF, and
 send the initial prompt describing the user's background, goals, and preferred
 company direction.
+
+## Usage Examples
+
+After uploading a CV PDF, the user can start with prompts such as:
+
+- "I am a backend Python engineer interested in healthtech companies in Europe.
+  Please find companies where my experience with APIs, data pipelines, and
+  cloud deployment would be a strong fit."
+- "I have a product management background and want to explore early-stage AI
+  startups in the United States. Prioritize companies where I could work on
+  developer tools or workflow automation."
+
+The agent uses the CV and prompt together to interpret the user's goals,
+identify relevant companies, score their fit, and produce a structured shortlist
+for follow-up research or outreach.
 
 ## Evaluation
 
@@ -191,11 +252,12 @@ MLflow. The user simulation logic lives in
 and the LLM-as-judge quality evaluation lives in
 [src/evals/nondeterministic/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/nondeterministic/judge.py).
 
-**User simulator** is a component that simulates user behavior
-when the agent asks clarification questions. It calls a separate model with the
-case data, communication style, first prompt, and latest agent message, using a
-higher temperature so replies are more variable while still staying grounded in
-the case definition.
+**User simulator** is a component that simulates user behavior across the
+regression conversation. It supplies the case's seeded first user prompt to
+start the session, and when the agent asks clarification questions it calls a
+separate model with the case data, communication style, first prompt, and latest
+agent message, using a higher temperature so replies are more variable while
+still staying grounded in the case definition.
 
 **Judging system** is configured in
 [src/evals/nondeterministic/judge.py](https://github.com/RushenKottie/company-fit-check/blob/main/src/evals/nondeterministic/judge.py),
@@ -280,13 +342,13 @@ By default, the mutation layer generates 2 cases. Run a custom number of
 mutation cases with:
 
 ```bash
-pytest tests/evals/test_llm_mutation_cases.py --mutation-count 5
+pytest tests/evals/test_llm_mutation_cases.py --mutation-count 3
 ```
 
 Run mutation cases concurrently with:
 
 ```bash
-pytest tests/evals/test_llm_mutation_cases.py --mutation-count 5 --concurrent --max-workers 2
+pytest tests/evals/test_llm_mutation_cases.py --mutation-count 3 --concurrent --max-workers 2
 ```
 
 This layer requires the same live model configuration as the non-deterministic

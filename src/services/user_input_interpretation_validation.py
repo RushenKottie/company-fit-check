@@ -82,7 +82,7 @@ def validate_user_input_interpretation(
 
 
 def _build_axis_issue_message(axes: list[Axis]) -> str | None:
-    """Collect deterministic axis-only issues before broader clarification checks."""
+    """Return a message for fixed axis issues such as too many or incomplete axes."""
 
     axis_messages: list[str] = []
     if len(axes) > MAX_AXES:
@@ -169,9 +169,7 @@ def _normalize_axis_suggestion(content: object) -> str:
     suggestion = content.strip()
     if not suggestion:
         return AXIS_MERGE_FALLBACK
-    if suggestion.startswith("I can suggest"):
-        return suggestion
-    return f"I can suggest... {suggestion}"
+    return suggestion
 
 
 def _assess_axis_clarification_needs(
@@ -184,7 +182,7 @@ def _assess_axis_clarification_needs(
 
     llm = create_azure_chat_model()
     if llm is None:
-        return _fallback_axis_assessment(axis_issue_message=axis_issue_message)
+        return None
 
     structured_llm = llm.with_structured_output(ClarificationAssessment)
     axis_lines = "\n".join(
@@ -335,17 +333,3 @@ def _assess_cv_sufficiency(
         result.needs_clarification,
     )
     return result
-
-
-def _fallback_axis_assessment(
-    axis_issue_message: str | None,
-) -> ClarificationAssessment | None:
-    """Return deterministic axis clarification guidance when the LLM is unavailable."""
-
-    if axis_issue_message:
-        logger.info("Using fallback axis assessment because LLM is unavailable.")
-        return ClarificationAssessment(
-            needs_clarification=True,
-            user_message=axis_issue_message,
-        )
-    return None

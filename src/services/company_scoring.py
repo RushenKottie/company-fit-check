@@ -1,7 +1,5 @@
 """Company scoring against CV and user-defined axes."""
 
-from statistics import mean
-
 from langchain_core.messages import HumanMessage, SystemMessage
 from mlflow.entities.span import SpanType
 from pydantic import BaseModel, Field
@@ -28,7 +26,7 @@ def score_companies(
 ) -> list[CompanyScore]:
     """Score discovered companies against the CV and matching axes."""
 
-    normalized_scores: list[CompanyScore] = []
+    scored_companies: list[CompanyScore] = []
     skipped_companies: list[str] = []
 
     logger.info(
@@ -41,7 +39,7 @@ def score_companies(
     for start in range(0, len(companies), SCORING_BATCH_SIZE):
         batch = companies[start : start + SCORING_BATCH_SIZE]
         try:
-            normalized_scores.extend(
+            scored_companies.extend(
                 _score_company_batch(
                     companies=batch,
                     simplified_cv_text=simplified_cv_text,
@@ -52,30 +50,16 @@ def score_companies(
             if not _is_content_filter_error(exc):
                 raise
 
-            logger.warning(
-                "Company scoring batch hit content filter; retrying one-by-one batch_start=%s batch_size=%s",
-                start,
-                len(batch),
+            recovered_scores, skipped_names = _retry_score_batch_one_by_one_after_filter(
+                batch=batch,
+                simplified_cv_text=simplified_cv_text,
+                axes=axes,
+                batch_start=start,
             )
-            for company in batch:
-                try:
-                    normalized_scores.extend(
-                        _score_company_batch(
-                            companies=[company],
-                            simplified_cv_text=simplified_cv_text,
-                            axes=axes,
-                        )
-                    )
-                except Exception as single_exc:
-                    if not _is_content_filter_error(single_exc):
-                        raise
-                    skipped_companies.append(company.name)
-                    logger.warning(
-                        "Skipping company during scoring after repeated content filter rejection company=%s",
-                        company.name,
-                    )
+            scored_companies.extend(recovered_scores)
+            skipped_companies.extend(skipped_names)
 
-    if not normalized_scores:
+    if not scored_companies:
         raise RuntimeError("Company scoring was blocked by the content filter.")
 
     if skipped_companies:
@@ -86,11 +70,10 @@ def score_companies(
         )
 
     logger.info(
-        "LLM call end: score_companies returned=%s normalized=%s",
-        len(normalized_scores),
-        len(normalized_scores),
+        "LLM call end: score_companies returned=%s",
+        len(scored_companies),
     )
-    return normalized_scores
+    return scored_companies
 
 
 def _score_company_batch(
@@ -133,7 +116,8 @@ def _score_company_batch(
                     "judgment from company and role signals. Do not reintroduce company "
                     "search criteria such as location, size, or domain as scoring "
                     "dimensions here. "
-                    "Axis names in the response must exactly match the provided axes. "
+                    "Use exactly the provided axis names and no other axes. Do not add, "
+                    "rename, merge, split, or omit axes. "
                     "Return exactly one score object for every company in the provided "
                     "company list, with no omissions and no extras. For every score "
                     "object, return both company_name and website_or_linkedin exactly "
@@ -157,15 +141,56 @@ def _score_company_batch(
         ]
         log_llm_prompt_artifact("llm-prompt-score-companies", messages)
         result = structured_llm.invoke(messages)
-        normalized = _normalize_company_scores(result.company_scores, companies, axes)
         if span is not None:
             span.set_outputs(
                 {
-                    "company_count": len(normalized),
-                    "company_scores": [score.model_dump() for score in normalized],
+                    "company_count": len(result.company_scores),
+                    "company_scores": [
+                        score.model_dump() for score in result.company_scores
+                    ],
                 }
             )
-        return normalized
+        return result.company_scores
+
+
+def _retry_score_batch_one_by_one_after_filter(
+    batch: list[CompanyCandidate],
+    simplified_cv_text: str,
+    axes: list[Axis],
+    batch_start: int,
+) -> tuple[list[CompanyScore], list[str]]:
+    """
+    Retry a content-filtered batch one company at a time.
+
+    Keep individually successful scores and return names that still get rejected.
+    """
+
+    logger.warning(
+        "Company scoring batch hit content filter; retrying one-by-one batch_start=%s batch_size=%s",
+        batch_start,
+        len(batch),
+    )
+
+    recovered_scores: list[CompanyScore] = []
+    skipped_names: list[str] = []
+    for company in batch:
+        try:
+            recovered_scores.extend(
+                _score_company_batch(
+                    companies=[company],
+                    simplified_cv_text=simplified_cv_text,
+                    axes=axes,
+                )
+            )
+        except Exception as exc:
+            if not _is_content_filter_error(exc):
+                raise
+            skipped_names.append(company.name)
+            logger.warning(
+                "Skipping company during scoring after repeated content filter rejection company=%s",
+                company.name,
+            )
+    return recovered_scores, skipped_names
 
 
 def _format_companies(companies: list[CompanyCandidate]) -> str:
@@ -181,83 +206,6 @@ def _format_axes(axes: list[Axis]) -> str:
     """Format axes for the scoring prompt."""
 
     return "\n".join(f"- {axis.name}: {axis.description}" for axis in axes)
-
-
-def _normalize_company_scores(
-    company_scores: list[CompanyScore],
-    companies: list[CompanyCandidate],
-    axes: list[Axis],
-) -> list[CompanyScore]:
-    """Normalize model-returned scores and compute overall deterministically."""
-
-    axis_names = [axis.name for axis in axes if axis.name.strip()]
-    normalized_company_scores: list[CompanyScore] = []
-    companies_by_name = {company.name: company for company in companies}
-    companies_by_website = {
-        _normalize_company_locator(company.website_or_linkedin): company
-        for company in companies
-        if company.website_or_linkedin.strip()
-    }
-
-    for company_score in company_scores:
-        matched_company = companies_by_name.get(company_score.company_name)
-        if matched_company is None and company_score.website_or_linkedin.strip():
-            matched_company = companies_by_website.get(
-                _normalize_company_locator(company_score.website_or_linkedin)
-            )
-
-        score_by_axis = {
-            axis_score.axis.strip(): _normalize_percentage(axis_score.percentage)
-            for axis_score in company_score.axis_scores
-            if axis_score.axis and axis_score.axis.strip()
-        }
-
-        normalized_axis_scores = []
-        for axis_name in axis_names:
-            if axis_name in score_by_axis:
-                normalized_axis_scores.append(
-                    {
-                        "axis": axis_name,
-                        "percentage": score_by_axis[axis_name],
-                    }
-                )
-
-        overall_score = mean(
-            axis_score["percentage"] for axis_score in normalized_axis_scores
-        ) if normalized_axis_scores else 0.0
-
-        normalized_company_scores.append(
-            CompanyScore(
-                company_name=(
-                    matched_company.name
-                    if matched_company is not None
-                    else company_score.company_name
-                ),
-                website_or_linkedin=(
-                    matched_company.website_or_linkedin
-                    if matched_company is not None
-                    else company_score.website_or_linkedin
-                ),
-                axis_scores=normalized_axis_scores,
-                overall_score=round(overall_score, 1),
-            )
-        )
-
-    return normalized_company_scores
-
-
-def _normalize_percentage(value: float) -> float:
-    """Normalize either 0-1 or 0-100 scores to a 0-100 percentage."""
-
-    normalized = value * 100 if 0.0 <= value <= 1.0 else value
-    normalized = max(0.0, min(100.0, normalized))
-    return round(normalized, 1)
-
-
-def _normalize_company_locator(value: str) -> str:
-    """Normalize one company URL/LinkedIn locator for exact fallback matching."""
-
-    return value.strip().rstrip("/").lower()
 
 
 def _is_content_filter_error(exc: Exception) -> bool:

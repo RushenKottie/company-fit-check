@@ -12,9 +12,9 @@ import mlflow
 from infrastructure.mlflow.common import (
     get_mlflow_client,
     is_tracking_enabled,
-    json_ready,
+    to_json_safe,
     safe_mlflow_call,
-    timestamp_slug,
+    artifact_timestamp,
     utc_now_iso,
 )
 from infrastructure.mlflow.context import (
@@ -25,6 +25,7 @@ from infrastructure.mlflow.context import (
     set_capture_stack,
 )
 from logging_utils import get_logger
+from models.state import SESSION_STATUS_COMPLETED, TERMINAL_SESSION_STATUSES
 
 logger = get_logger(__name__)
 
@@ -61,7 +62,7 @@ def log_clarification_question(question: str, target: str | None) -> None:
         f"target: {target or 'unknown'}\n\n"
         f"{question.strip()}"
     )
-    log_text_artifact(f"clarifications/question-{timestamp_slug()}.txt", content)
+    log_text_artifact(f"clarifications/question-{artifact_timestamp()}.txt", content)
 
 
 def log_clarification_answer(question: str | None, answer: str, target: str | None) -> None:
@@ -104,7 +105,7 @@ def log_assistant_response_for_run(
     )
     log_text_artifact_for_run(
         run_id,
-        f"assistant/response-{timestamp_slug()}.txt",
+        f"assistant/response-{artifact_timestamp()}.txt",
         content,
     )
 
@@ -125,7 +126,7 @@ def log_guardrail_blocked_user_message(
     )
     log_text_artifact_for_run(
         run_id,
-        f"guardrails/blocked-user-message-{timestamp_slug()}.txt",
+        f"guardrails/blocked-user-message-{artifact_timestamp()}.txt",
         content,
     )
 
@@ -147,7 +148,7 @@ def _log_clarification_answer_for_run(
     )
     log_text_artifact_for_run(
         run_id,
-        f"clarifications/answer-{timestamp_slug()}.txt",
+        f"clarifications/answer-{artifact_timestamp()}.txt",
         content,
     )
 
@@ -166,23 +167,8 @@ def log_llm_prompt_artifact(prefix: str, messages: list[BaseMessage]) -> None:
     if span is None:
         return
 
-    rendered_messages = [
-        {
-            "index": index,
-            "role": getattr(message, "type", message.__class__.__name__),
-            "content": (
-                message.content
-                if isinstance(message.content, str)
-                else str(message.content)
-            ),
-        }
-        for index, message in enumerate(messages, start=1)
-    ]
-    stack = get_capture_stack()
-    if stack:
-        stack[-1]["prompt_prefix"] = prefix
-        stack[-1]["prompt_messages"] = json_ready(rendered_messages)
-        set_capture_stack(stack)
+    rendered_messages = _render_llm_messages(messages)
+    _record_prompt_capture(prefix, rendered_messages)
     safe_mlflow_call(
         "set prompt span attribute",
         lambda: span.set_attribute("llm.prompt.prefix", prefix),
@@ -194,6 +180,38 @@ def log_llm_prompt_artifact(prefix: str, messages: list[BaseMessage]) -> None:
         None,
     )
     logger.info("Attached LLM prompt payload to active MLflow span prefix=%s", prefix)
+
+
+def _render_llm_messages(messages: list[BaseMessage]) -> list[dict[str, Any]]:
+    """Return a compact serializable view of LangChain prompt messages."""
+
+    return [
+        {
+            "index": index,
+            "role": getattr(message, "type", message.__class__.__name__),
+            "content": (
+                message.content
+                if isinstance(message.content, str)
+                else str(message.content)
+            ),
+        }
+        for index, message in enumerate(messages, start=1)
+    ]
+
+
+def _record_prompt_capture(
+    prefix: str,
+    rendered_messages: list[dict[str, Any]],
+) -> None:
+    """Mirror the prompt payload into the active deterministic-eval capture."""
+
+    stack = get_capture_stack()
+    if not stack:
+        return
+
+    stack[-1]["prompt_prefix"] = prefix
+    stack[-1]["prompt_messages"] = to_json_safe(rendered_messages)
+    set_capture_stack(stack)
 
 
 def log_text_artifact_for_run(run_id: str, artifact_path: str, content: str) -> None:
@@ -247,7 +265,7 @@ def set_run_status_for_run(
 
     if not run_id or not is_tracking_enabled():
         return
-    if status not in {"completed", "failed"}:
+    if status not in TERMINAL_SESSION_STATUSES:
         return
 
     log_json_artifact_for_run(
@@ -269,7 +287,7 @@ def set_run_status_for_run(
         "set run terminated",
         lambda: client.set_terminated(
             run_id,
-            status="FINISHED" if status == "completed" else "FAILED",
+            status="FINISHED" if status == SESSION_STATUS_COMPLETED else "FAILED",
         ),
         None,
     )

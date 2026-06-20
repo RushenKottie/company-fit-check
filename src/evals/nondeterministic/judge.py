@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from mlflow.entities.span import SpanType
 
 from evals.nondeterministic.models import (
@@ -201,11 +201,7 @@ def judge_nondeterministic_case(
 ) -> NondeterministicJudgeResponse:
     """Call the dedicated LLM judge for one non-deterministic case."""
 
-    llm = create_llm_judge_chat_model()
-    if llm is None:
-        raise RuntimeError("Azure OpenAI is not configured for LLM judge scoring.")
-
-    structured_llm = llm.with_structured_output(NondeterministicJudgeResponse)
+    messages = _build_judge_messages(request)
     with traced_operation(
         "llm.judge_nondeterministic_case",
         span_type=SpanType.EVALUATOR,
@@ -215,12 +211,8 @@ def judge_nondeterministic_case(
             session_id=request.run_id,
             request_preview=f"Judge {request.case_name}",
         )
-        messages = [
-            SystemMessage(content=request.judge_system_prompt),
-            HumanMessage(content=_build_judge_prompt(request)),
-        ]
         log_llm_prompt_artifact("llm-prompt-judge-nondeterministic-case", messages)
-        result = structured_llm.invoke(messages)
+        result = _call_judge_model(messages)
         update_current_trace_session(
             session_id=request.run_id,
             response_preview="Judge scoring completed.",
@@ -230,15 +222,33 @@ def judge_nondeterministic_case(
         return result
 
 
-def _build_judge_prompt(request: NondeterministicJudgeRequest) -> str:
-    """Build the case material payload for the non-deterministic judge."""
+def _build_judge_messages(request: NondeterministicJudgeRequest) -> list[BaseMessage]:
+    """Build the system and human messages sent to the judge model."""
+
+    return [
+        SystemMessage(content=request.judge_system_prompt),
+        HumanMessage(content=_build_judge_case_message(request)),
+    ]
+
+
+def _call_judge_model(messages: list[BaseMessage]) -> NondeterministicJudgeResponse:
+    """Call the judge model and return structured scores."""
+
+    llm = create_llm_judge_chat_model()
+    if llm is None:
+        raise RuntimeError("Azure OpenAI is not configured for LLM judge scoring.")
+
+    structured_llm = llm.with_structured_output(NondeterministicJudgeResponse)
+    return structured_llm.invoke(messages)
+
+
+def _build_judge_case_message(request: NondeterministicJudgeRequest) -> str:
+    """Build the case material and scoring instructions for the judge."""
 
     metric_block = "\n".join(
         f"- {metric.name}: {metric.rubric}" for metric in request.judge_metrics
     )
     return (
-        "Judge system prompt:\n"
-        f"{request.judge_system_prompt}\n\n"
         "Metric definitions and rubrics:\n"
         f"{metric_block}\n\n"
         "Judge instructions:\n"

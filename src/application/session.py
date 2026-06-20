@@ -9,9 +9,9 @@ from application.workflow_state import (
 )
 from graph.workflow import run_workflow
 from logging_utils import configure_logging, get_logger
-from models.artifacts import GeneratedArtifact
+from models.artifacts import GeneratedCsvArtifact
 from models.input import UserInput
-from models.state import CompanyFitState
+from models.state import SESSION_STATUS_COMPLETED, CompanyFitState
 from infrastructure.mlflow_tracking import (
     create_run_id,
     log_assistant_response_for_run,
@@ -28,7 +28,7 @@ class SessionResult:
 
     state: CompanyFitState
     assistant_message: str
-    csv_artifact: GeneratedArtifact | None = None
+    csv_artifact: GeneratedCsvArtifact | None = None
 
 
 def start_session(cv_pdf_bytes: bytes, prompt: str, run_id: str | None = None) -> SessionResult:
@@ -76,7 +76,7 @@ def _package_result(state: CompanyFitState) -> SessionResult:
     status = state.get("session_status")
     logger.info("Packaging workflow result status=%s", status)
     csv_artifact = None
-    if status == "completed":
+    if status == SESSION_STATUS_COMPLETED:
         logger.info("Building CSV artifact for completed workflow.")
         csv_artifact = build_results_csv(state)
 

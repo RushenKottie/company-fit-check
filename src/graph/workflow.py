@@ -1,13 +1,15 @@
 """Workflow construction and programmatic entrypoints."""
 
+from functools import lru_cache
+
 from langgraph.graph import END, StateGraph
 
 from application.messages import build_assistant_message
-from graph.node_names import WorkflowNodeName, WorkflowRouteName
+from graph.node_names import STOP_ROUTE, WorkflowNodeName
 from graph.nodes import (
     extract_and_mask_cv_node,
     interpret_user_input_node,
-    refine_company_search_node,
+    prepare_final_results_node,
     score_companies_node,
     search_companies_node,
     simplify_cv_node,
@@ -16,14 +18,13 @@ from graph.nodes import (
 )
 from graph.routing import (
     route_after_company_search,
-    route_after_company_search_refinement,
     route_after_user_input_interpretation,
     route_after_privacy_check,
     route_after_validation,
     route_from_entry,
 )
 from logging_utils import get_logger
-from models.state import CompanyFitState
+from models.state import SESSION_STATUS_RUNNING, CompanyFitState
 from infrastructure.mlflow_tracking import (
     activate_mlflow_tracking,
     deactivate_mlflow_tracking,
@@ -37,11 +38,12 @@ logger = get_logger(__name__)
 
 
 def entry_node(state: CompanyFitState) -> CompanyFitState:
-    """No-op entry point used to resume at the right boundary."""
+    """Return state unchanged before routing to the next workflow step."""
 
     return state
 
 
+@lru_cache(maxsize=1)
 def build_graph():
     """Build the minimal LangGraph workflow."""
 
@@ -65,12 +67,12 @@ def build_graph():
         WorkflowNodeName.VALIDATE_USER_INPUT_INTERPRETATION.value,
         validate_user_input_interpretation_node,
     )
-    graph.add_node(
-        WorkflowNodeName.REFINE_COMPANY_SEARCH.value,
-        refine_company_search_node,
-    )
     graph.add_node(WorkflowNodeName.SEARCH_COMPANIES.value, search_companies_node)
     graph.add_node(WorkflowNodeName.SCORE_COMPANIES.value, score_companies_node)
+    graph.add_node(
+        WorkflowNodeName.PREPARE_FINAL_RESULTS.value,
+        prepare_final_results_node,
+    )
 
     graph.set_entry_point(WorkflowNodeName.ENTRY.value)
     graph.add_conditional_edges(
@@ -83,10 +85,7 @@ def build_graph():
             WorkflowNodeName.INTERPRET_USER_INPUT.value: (
                 WorkflowNodeName.INTERPRET_USER_INPUT.value
             ),
-            WorkflowNodeName.REFINE_COMPANY_SEARCH.value: (
-                WorkflowNodeName.REFINE_COMPANY_SEARCH.value
-            ),
-            WorkflowRouteName.STOP.value: END,
+            STOP_ROUTE: END,
         },
     )
     graph.add_edge(
@@ -98,7 +97,7 @@ def build_graph():
         route_after_privacy_check,
         {
             WorkflowNodeName.SIMPLIFY_CV.value: WorkflowNodeName.SIMPLIFY_CV.value,
-            WorkflowRouteName.STOP.value: END,
+            STOP_ROUTE: END,
         },
     )
     graph.add_edge(
@@ -112,7 +111,7 @@ def build_graph():
             WorkflowNodeName.VALIDATE_USER_INPUT_INTERPRETATION.value: (
                 WorkflowNodeName.VALIDATE_USER_INPUT_INTERPRETATION.value
             ),
-            WorkflowRouteName.STOP.value: END,
+            STOP_ROUTE: END,
         },
     )
     graph.add_conditional_edges(
@@ -122,17 +121,7 @@ def build_graph():
             WorkflowNodeName.SEARCH_COMPANIES.value: (
                 WorkflowNodeName.SEARCH_COMPANIES.value
             ),
-            WorkflowRouteName.STOP.value: END,
-        },
-    )
-    graph.add_conditional_edges(
-        WorkflowNodeName.REFINE_COMPANY_SEARCH.value,
-        route_after_company_search_refinement,
-        {
-            WorkflowNodeName.SEARCH_COMPANIES.value: (
-                WorkflowNodeName.SEARCH_COMPANIES.value
-            ),
-            WorkflowRouteName.STOP.value: END,
+            STOP_ROUTE: END,
         },
     )
     graph.add_conditional_edges(
@@ -142,10 +131,17 @@ def build_graph():
             WorkflowNodeName.SCORE_COMPANIES.value: (
                 WorkflowNodeName.SCORE_COMPANIES.value
             ),
-            WorkflowRouteName.STOP.value: END,
+            WorkflowNodeName.PREPARE_FINAL_RESULTS.value: (
+                WorkflowNodeName.PREPARE_FINAL_RESULTS.value
+            ),
+            STOP_ROUTE: END,
         },
     )
-    graph.add_edge(WorkflowNodeName.SCORE_COMPANIES.value, END)
+    graph.add_edge(
+        WorkflowNodeName.SCORE_COMPANIES.value,
+        WorkflowNodeName.PREPARE_FINAL_RESULTS.value,
+    )
+    graph.add_edge(WorkflowNodeName.PREPARE_FINAL_RESULTS.value, END)
     return graph.compile()
 
 
@@ -155,6 +151,7 @@ def run_workflow(state: CompanyFitState) -> CompanyFitState:
     logger.info("Invoking workflow status=%s", state.get("session_status"))
     app = build_graph()
     tracking_context = activate_mlflow_tracking(state)
+    request_preview = _build_request_preview(state)
     result = state
     with traced_operation(
         "workflow.run",
@@ -163,7 +160,7 @@ def run_workflow(state: CompanyFitState) -> CompanyFitState:
             "run_id": state.get("run_id"),
             "session_status": state.get("session_status"),
             "clarification_target": state.get("clarification_target"),
-            "user_message": _build_request_preview(state),
+            "user_message": request_preview,
             "user_message_kind": state.get("latest_user_message_kind"),
             "initial_prompt": (
                 state.get("input").prompt if state.get("input") is not None else None
@@ -173,7 +170,7 @@ def run_workflow(state: CompanyFitState) -> CompanyFitState:
     ) as span:
         update_current_trace_session(
             session_id=state.get("run_id"),
-            request_preview=_build_request_preview(state),
+            request_preview=request_preview,
         )
         try:
             result = app.invoke(state)
@@ -218,6 +215,6 @@ def _build_response_preview(state: CompanyFitState) -> str | None:
     message = build_assistant_message(state).strip()
     if message:
         return message
-    if state.get("session_status") == "running":
+    if state.get("session_status") == SESSION_STATUS_RUNNING:
         return "Workflow is running."
     return None

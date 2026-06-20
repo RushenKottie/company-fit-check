@@ -32,6 +32,48 @@ def generate_mutation_case_files(
 ) -> list[Path]:
     """Generate mutation case JSON files and return their paths."""
 
+    randomizer, case_dir, pdf_dir, buckets = _prepare_generation_inputs(
+        count=count,
+        buckets_path=buckets_path,
+        output_dir=output_dir,
+        pdf_output_dir=pdf_output_dir,
+        rng=rng,
+    )
+    if count > len(buckets["profession"]):
+        raise ValueError("count cannot exceed the number of available professions")
+
+    case_ids = randomizer.sample(range(MIN_CASE_ID, MAX_CASE_ID + 1), count)
+    professions = randomizer.sample(buckets["profession"], count)
+    generated_paths = [
+        _write_mutation_case_files(
+            buckets,
+            randomizer,
+            case_dir=case_dir,
+            pdf_dir=pdf_dir,
+            case_id=case_id,
+            profession=profession,
+        )
+        for case_id, profession in zip(case_ids, professions, strict=True)
+    ]
+
+    logger.info(
+        "Generated mutation case files count=%s output_dir=%s",
+        len(generated_paths),
+        case_dir,
+    )
+    return generated_paths
+
+
+def _prepare_generation_inputs(
+    *,
+    count: int,
+    buckets_path: Path | None,
+    output_dir: Path | None,
+    pdf_output_dir: Path | None,
+    rng: random.Random | None,
+) -> tuple[random.Random, Path, Path, dict[str, Any]]:
+    """Validate options, load buckets, and create output directories."""
+
     configure_logging()
     if count < 1:
         raise ValueError("count must be at least 1")
@@ -51,43 +93,42 @@ def generate_mutation_case_files(
         pdf_dir,
     )
     buckets = json.loads(bucket_file.read_text(encoding="utf-8"))
-    if count > len(buckets["profession"]):
-        raise ValueError("count cannot exceed the number of available professions")
-
-    case_ids = randomizer.sample(range(MIN_CASE_ID, MAX_CASE_ID + 1), count)
-    professions = randomizer.sample(buckets["profession"], count)
 
     case_dir.mkdir(parents=True, exist_ok=True)
     pdf_dir.mkdir(parents=True, exist_ok=True)
+    return randomizer, case_dir, pdf_dir, buckets
 
-    generated_paths: list[Path] = []
-    for case_id, profession in zip(case_ids, professions, strict=True):
-        payload = build_random_mutation_case_payload(
-            buckets,
-            randomizer,
-            case_id=case_id,
-            profession=profession,
-        )
-        pdf_path = _unique_pdf_path(pdf_dir, payload)
-        payload["pdf_path"] = _repo_relative_path(pdf_path)
-        _write_fictional_cv_pdf(pdf_path, payload, randomizer)
 
-        case_path = _unique_case_path(case_dir, payload)
-        case_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        generated_paths.append(case_path)
-        logger.info(
-            "Generated mutation case case_id=%s case_path=%s pdf_path=%s",
-            payload["id"],
-            case_path,
-            pdf_path,
-        )
+def _write_mutation_case_files(
+    buckets: dict[str, Any],
+    rng: random.Random,
+    *,
+    case_dir: Path,
+    pdf_dir: Path,
+    case_id: int,
+    profession: str,
+) -> Path:
+    """Write one generated case JSON file and its matching PDF fixture."""
 
-    logger.info(
-        "Generated mutation case files count=%s output_dir=%s",
-        len(generated_paths),
-        case_dir,
+    payload = build_random_mutation_case_payload(
+        buckets,
+        rng,
+        case_id=case_id,
+        profession=profession,
     )
-    return generated_paths
+    pdf_path = pdf_dir / f"{payload['id']:02d}_{payload['name']}_cv.pdf"
+    payload["pdf_path"] = _repo_relative_path(pdf_path)
+    _write_fictional_cv_pdf(pdf_path, payload, rng)
+
+    case_path = case_dir / f"{payload['id']:02d}_{payload['name']}.json"
+    case_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    logger.info(
+        "Generated mutation case case_id=%s case_path=%s pdf_path=%s",
+        payload["id"],
+        case_path,
+        pdf_path,
+    )
+    return case_path
 
 
 def build_random_mutation_case_payload(
@@ -102,13 +143,13 @@ def build_random_mutation_case_payload(
     if not MIN_CASE_ID <= case_id <= MAX_CASE_ID:
         raise ValueError(f"case_id must be between {MIN_CASE_ID} and {MAX_CASE_ID}")
 
-    profession = profession or _choose_one(buckets["profession"], rng)
-    experience = _choose_one(buckets["experience"], rng)
-    goal = _choose_one(buckets["goal"], rng)
-    region = _choose_one(buckets["region"], rng)
+    profession = profession or rng.choice(buckets["profession"])
+    experience = rng.choice(buckets["experience"])
+    goal = rng.choice(buckets["goal"])
+    region = rng.choice(buckets["region"])
     filter_criteria = _sample_many(buckets["filter_criteria"], rng, min_count=2, max_count=4)
     axes = _sample_many(buckets["axes"], rng, min_count=2, max_count=3)
-    style_description = _choose_one(buckets["communication_style"]["description"], rng)
+    style_description = rng.choice(buckets["communication_style"]["description"])
     behavioral_traits = _sample_many(
         buckets["communication_style"]["behavioral_traits"],
         rng,
@@ -122,7 +163,7 @@ def build_random_mutation_case_payload(
 
     return {
         "id": case_id,
-        "name": _slug(profession),
+        "name": _safe_filename_part(profession),
         "profession": profession,
         "experience": experience,
         "goal": goal,
@@ -139,12 +180,6 @@ def build_random_mutation_case_payload(
     }
 
 
-def _choose_one(values: list[str], rng: random.Random) -> str:
-    if not values:
-        raise ValueError("Cannot choose from an empty bucket")
-    return rng.choice(values)
-
-
 def _sample_many(
     values: list[str],
     rng: random.Random,
@@ -152,43 +187,23 @@ def _sample_many(
     min_count: int,
     max_count: int,
 ) -> list[str]:
+    """Return a random subset whose size stays within the requested bounds."""
+
     if len(values) < min_count:
         raise ValueError(f"Bucket must contain at least {min_count} values")
     count = rng.randint(min_count, min(max_count, len(values)))
     return rng.sample(values, count)
 
 
-def _slug(value: str) -> str:
+def _safe_filename_part(value: str) -> str:
+    """Convert text into a lowercase value safe to use in filenames."""
+
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
 
 
-def _unique_case_path(case_dir: Path, payload: dict[str, Any]) -> Path:
-    base_path = case_dir / f"{payload['id']:02d}_{payload['name']}.json"
-    if not base_path.exists():
-        return base_path
-
-    suffix = 2
-    while True:
-        case_path = case_dir / f"{payload['id']:02d}_{payload['name']}_{suffix}.json"
-        if not case_path.exists():
-            return case_path
-        suffix += 1
-
-
-def _unique_pdf_path(pdf_dir: Path, payload: dict[str, Any]) -> Path:
-    base_path = pdf_dir / f"{payload['id']:02d}_{payload['name']}_cv.pdf"
-    if not base_path.exists():
-        return base_path
-
-    suffix = 2
-    while True:
-        pdf_path = pdf_dir / f"{payload['id']:02d}_{payload['name']}_cv_{suffix}.pdf"
-        if not pdf_path.exists():
-            return pdf_path
-        suffix += 1
-
-
 def _repo_relative_path(path: Path) -> str:
+    """Return a path relative to the repository when possible."""
+
     repo_root = eval_root().parent
     try:
         return path.relative_to(repo_root).as_posix()
@@ -197,6 +212,8 @@ def _repo_relative_path(path: Path) -> str:
 
 
 def _write_fictional_cv_pdf(path: Path, payload: dict[str, Any], rng: random.Random) -> None:
+    """Write a small PDF CV fixture for one generated mutation case."""
+
     lines = _fictional_cv_lines(payload, rng)
     stream = _pdf_text_stream(lines)
     objects = [
@@ -233,9 +250,11 @@ def _write_fictional_cv_pdf(path: Path, payload: dict[str, Any], rng: random.Ran
 
 
 def _fictional_cv_lines(payload: dict[str, Any], rng: random.Random) -> list[str]:
+    """Build the fictional CV text lines used in the generated PDF."""
+
     case_id = payload["id"]
     profession = payload["profession"]
-    first_name = _choose_one(
+    first_name = rng.choice(
         [
             "Alex",
             "Maya",
@@ -248,9 +267,8 @@ def _fictional_cv_lines(payload: dict[str, Any], rng: random.Random) -> list[str
             "Adrian",
             "Elena",
         ],
-        rng,
     )
-    last_name = _choose_one(
+    last_name = rng.choice(
         [
             "Morgan",
             "Patel",
@@ -263,7 +281,6 @@ def _fictional_cv_lines(payload: dict[str, Any], rng: random.Random) -> list[str
             "Novak",
             "Bennett",
         ],
-        rng,
     )
     name = f"{first_name} {last_name}"
     companies = rng.sample(
@@ -277,7 +294,7 @@ def _fictional_cv_lines(payload: dict[str, Any], rng: random.Random) -> list[str
         ],
         3,
     )
-    university = _choose_one(
+    university = rng.choice(
         [
             "University of Lisbon",
             "University of Toronto",
@@ -288,16 +305,14 @@ def _fictional_cv_lines(payload: dict[str, Any], rng: random.Random) -> list[str
             "National University of Singapore",
             "University of Buenos Aires",
         ],
-        rng,
     )
-    degree = _choose_one(
+    degree = rng.choice(
         [
             f"Bachelor of Arts in {profession}",
             f"Bachelor of Science in {profession}",
             f"Master of Professional Studies in {profession}",
             f"Master of Science in {profession}",
         ],
-        rng,
     )
     end_year = rng.randint(2018, 2025)
     job_history = [
@@ -330,6 +345,8 @@ def _fictional_cv_lines(payload: dict[str, Any], rng: random.Random) -> list[str
 
 
 def _pdf_text_stream(lines: list[str]) -> bytes:
+    """Encode plain text lines as a PDF text stream."""
+
     commands = ["BT", "/F1 11 Tf", "72 740 Td", "14 TL"]
     for line in lines:
         commands.append(f"({_escape_pdf_text(line)}) Tj")
@@ -339,4 +356,6 @@ def _pdf_text_stream(lines: list[str]) -> bytes:
 
 
 def _escape_pdf_text(value: str) -> str:
+    """Escape text characters that are special inside PDF string literals."""
+
     return value.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")

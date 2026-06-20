@@ -1,92 +1,82 @@
-"""Export completed workflow results into reusable file artifacts."""
+"""Export completed workflow results into CSV files."""
 
 import csv
 import io
 import re
 
 from logging_utils import get_logger
-from models.artifacts import GeneratedArtifact
-from models.state import Axis, CompanyFitState
+from models.artifacts import GeneratedCsvArtifact
+from models.state import (
+    SESSION_STATUS_COMPLETED,
+    CompanyFitState,
+    FinalCompanyResult,
+)
 
 logger = get_logger(__name__)
 
-RESULT_CSV_BASE_COLUMNS = (
-    "company_name",
-    "website_or_linkedin",
-    "location",
-    "industry",
-    "company_size",
-    "discovery_reason",
-    "overall_score",
+RESULT_CSV_BASE_COLUMNS = tuple(
+    field_name
+    for field_name in FinalCompanyResult.model_fields
+    if field_name != "axis_scores"
 )
 
 
-def build_results_csv(state: CompanyFitState) -> GeneratedArtifact:
+def build_results_csv(state: CompanyFitState) -> GeneratedCsvArtifact:
     """Build a CSV artifact from a completed workflow state."""
 
-    if state.get("session_status") != "completed":
+    if state.get("session_status") != SESSION_STATUS_COMPLETED:
         raise ValueError("CSV export is only available for completed workflows.")
 
-    axes = state.get("axes", [])
-    companies = state.get("companies", [])
-    company_scores = state.get("company_scores", [])
-    companies_by_name = {company.name: company for company in companies}
-    fieldnames = build_results_csv_fieldnames(axes)
-    axis_columns = fieldnames[len(RESULT_CSV_BASE_COLUMNS) :]
+    final_results = [
+        FinalCompanyResult.model_validate(result)
+        for result in state.get("final_results", [])
+    ]
+    fieldnames = build_results_csv_fieldnames(final_results)
 
     buffer = io.StringIO(newline="")
     writer = csv.DictWriter(buffer, fieldnames=fieldnames)
     writer.writeheader()
-
-    for company_score in company_scores:
-        company = companies_by_name.get(company_score.company_name)
-        axis_scores_by_name = {
-            axis_score.axis: axis_score.percentage
-            for axis_score in company_score.axis_scores
-        }
-
-        row = {
-            "company_name": company_score.company_name,
-            "website_or_linkedin": (
-                company.website_or_linkedin if company is not None else ""
-            ),
-            "location": company.location if company is not None else "",
-            "industry": company.industry if company is not None else "",
-            "company_size": company.company_size if company is not None else "",
-            "discovery_reason": (
-                company.discovery_reason if company is not None else ""
-            ),
-            "overall_score": company_score.overall_score,
-        }
-
-        for axis, column_name in zip(axes, axis_columns, strict=False):
-            row[column_name] = axis_scores_by_name.get(axis.name, "")
-
-        writer.writerow(row)
+    for result in final_results:
+        writer.writerow(_build_csv_row(result, fieldnames))
 
     logger.info(
-        "Built CSV artifact rows=%s axis_columns=%s",
-        len(company_scores),
-        len(axis_columns),
+        "Built CSV artifact rows=%s columns=%s",
+        len(final_results),
+        len(fieldnames),
     )
-    return GeneratedArtifact(
+    return GeneratedCsvArtifact(
         filename="company-fit-results.csv",
         content_type="text/csv",
         content_bytes=buffer.getvalue().encode("utf-8"),
     )
 
 
-def build_results_csv_fieldnames(axes: list[Axis]) -> list[str]:
-    """Return the CSV field names for the given axes."""
+def build_results_csv_fieldnames(
+    final_results: list[FinalCompanyResult],
+) -> list[str]:
+    """Return the base CSV fields plus one score column per axis."""
 
-    return [*RESULT_CSV_BASE_COLUMNS, *_build_axis_column_names(axes)]
-
-
-def _build_axis_column_names(axes: list[Axis]) -> list[str]:
+    axis_scores = final_results[0].axis_scores if final_results else []
     return [
-        _build_axis_column_name(index=index, axis_name=axis.name)
-        for index, axis in enumerate(axes, start=1)
+        *RESULT_CSV_BASE_COLUMNS,
+        *[
+            _build_axis_column_name(index=index, axis_name=axis.axis_name)
+            for index, axis in enumerate(axis_scores, start=1)
+        ],
     ]
+
+
+def _build_csv_row(
+    result: FinalCompanyResult,
+    fieldnames: list[str],
+) -> dict[str, object]:
+    """Return one flattened CSV row with dynamic axis score columns."""
+
+    row = result.model_dump(exclude={"axis_scores"})
+    axis_columns = fieldnames[len(RESULT_CSV_BASE_COLUMNS) :]
+    for axis_score, column_name in zip(result.axis_scores, axis_columns, strict=False):
+        row[column_name] = axis_score.score
+    return row
 
 
 def _build_axis_column_name(index: int, axis_name: str) -> str:
