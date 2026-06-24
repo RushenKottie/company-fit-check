@@ -2,7 +2,7 @@
 
 from typing import Literal, TypedDict
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from models.input import UserInput
 
@@ -38,6 +38,14 @@ class HardFilter(BaseModel):
     value: str = Field(
         default="",
         description="Normalized literal value from the requirement.",
+    )
+    minimum: int | None = Field(
+        default=None,
+        description="Numeric lower bound when the requirement has one.",
+    )
+    maximum: int | None = Field(
+        default=None,
+        description="Numeric upper bound when the requirement has one.",
     )
 
 
@@ -101,6 +109,48 @@ class CompanyScore(BaseModel):
     overall_score: float = Field(ge=0.0, le=100.0)
 
 
+class FinalAxisResult(BaseModel):
+    """Final per-axis score prepared for user-facing exports."""
+
+    axis_name: str
+    score: float
+
+
+class FinalCompanyResult(BaseModel):
+    """Final company fit result prepared for user-facing exports."""
+
+    company_name: str
+    website_or_linkedin: str
+    location: str
+    industry: str
+    company_size: str
+    discovery_reason: str
+    overall_score: float
+    axis_scores: list[FinalAxisResult] = Field(default_factory=list)
+
+    @field_serializer("axis_scores", when_used="json")
+    def serialize_axis_scores(self, axis_scores: list[FinalAxisResult]) -> str:
+        """Render axis scores as one readable CSV cell."""
+
+        return "; ".join(
+            f"{axis.axis_name}: {axis.score:.1f}%"
+            for axis in axis_scores
+        )
+
+
+SESSION_STATUS_RUNNING = "running"
+SESSION_STATUS_NEEDS_CLARIFICATION = "needs_clarification"
+SESSION_STATUS_COMPLETED = "completed"
+SESSION_STATUS_FAILED = "failed"
+TERMINAL_SESSION_STATUSES = {SESSION_STATUS_COMPLETED, SESSION_STATUS_FAILED}
+INTERRUPTED_SESSION_STATUSES = {
+    SESSION_STATUS_FAILED,
+    SESSION_STATUS_NEEDS_CLARIFICATION,
+}
+PII_MASKING_STATUS_NOT_STARTED = "not_started"
+PII_MASKING_STATUS_PASSED = "passed"
+PII_MASKING_STATUS_FAILED = "failed"
+
 SessionStatus = Literal[
     "running",
     "needs_clarification",
@@ -108,7 +158,7 @@ SessionStatus = Literal[
     "failed",
 ]
 
-ClarificationTarget = Literal["user_input_interpretation", "company_search"]
+ClarificationTarget = Literal["user_input_interpretation"]
 UserMessageKind = Literal["prompt", "clarification"]
 
 
@@ -123,6 +173,7 @@ class CompanyFitState(TypedDict, total=False):
     axes: list[Axis]
     companies: list[CompanyCandidate]
     company_scores: list[CompanyScore]
+    final_results: list[FinalCompanyResult]
     pending_clarification_message: str | None
     latest_clarification_response: str | None
     clarification_target: ClarificationTarget | None
@@ -131,6 +182,5 @@ class CompanyFitState(TypedDict, total=False):
     guardrail_rephrase_source: UserMessageKind | None
     run_id: str | None
     user_input_interpretation_clarification_iterations: int
-    company_search_clarification_iterations: int
     session_status: SessionStatus
     error: str | None

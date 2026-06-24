@@ -35,7 +35,7 @@ def ensure_experiment(client: MlflowClient) -> str | None:
     """Create the configured MLflow experiment if needed and return its id."""
 
     settings = get_mlflow_settings()
-    experiment_name = get_effective_experiment_name(settings)
+    experiment_name = resolve_experiment_name(settings)
     experiment = client.get_experiment_by_name(experiment_name)
     if experiment is not None:
         return experiment.experiment_id
@@ -56,7 +56,7 @@ def ensure_experiment(client: MlflowClient) -> str | None:
     return experiment_id
 
 
-def get_effective_experiment_name(settings) -> str:
+def resolve_experiment_name(settings) -> str:
     """Return the active experiment name, honoring any temporary override."""
 
     return _ACTIVE_EXPERIMENT_NAME.get() or settings.experiment_name
@@ -93,25 +93,25 @@ def is_tracking_enabled() -> bool:
     return False
 
 
-def json_ready(value: Any) -> Any:
+def to_json_safe(value: Any) -> Any:
     """Recursively convert Pydantic models and containers into JSON-safe data."""
 
     if isinstance(value, BaseModel):
-        return json_ready(value.model_dump())
+        return to_json_safe(value.model_dump())
     if isinstance(value, dict):
-        return {str(key): json_ready(item) for key, item in value.items()}
+        return {str(key): to_json_safe(item) for key, item in value.items()}
     if isinstance(value, list):
-        return [json_ready(item) for item in value]
+        return [to_json_safe(item) for item in value]
     return value
 
 
-def slugify(value: str) -> str:
-    """Return a compact lowercase slug for MLflow names and tags."""
+def normalize_name(value: str) -> str:
+    """Return a compact lowercase name with non-alphanumeric text replaced by underscores."""
 
     return re.sub(r"[^a-z0-9]+", "_", value.strip().lower()).strip("_")
 
 
-def timestamp_slug() -> str:
+def artifact_timestamp() -> str:
     """Return a UTC timestamp formatted for artifact file names."""
 
     return datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")

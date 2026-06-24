@@ -24,7 +24,7 @@ from infrastructure.mlflow.context import (
     capture_tracking_events,
     suspend_mlflow_run_termination,
 )
-from infrastructure.mlflow.eval_datasets import ensure_case_dataset_for_run
+from infrastructure.mlflow.manage_eval_datasets import ensure_case_dataset_for_run
 from infrastructure.mlflow.runs import (
     activate_mlflow_tracking,
     create_run_id,

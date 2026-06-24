@@ -1,4 +1,4 @@
-"""Temporary Chainlit session helpers."""
+"""Chainlit in-memory workflow session helpers."""
 
 import chainlit as cl
 

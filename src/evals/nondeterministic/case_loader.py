@@ -30,3 +30,9 @@ def build_nondeterministic_case_index(
 
     cases = load_nondeterministic_cases(case_dir)
     return MappingProxyType({case.id: case for case in cases})
+
+
+def list_available_case_ids(case_dir: Path | None = None) -> list[int]:
+    """Return sorted non-deterministic regression case ids."""
+
+    return sorted(build_nondeterministic_case_index(case_dir))

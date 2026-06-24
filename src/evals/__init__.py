@@ -2,8 +2,10 @@
 
 from pathlib import Path
 
-EVAL_EXPERIMENT_NAME = "company-fit-check-deterministic-evals"
+DETERMINISTIC_EXPERIMENT_NAME = "company-fit-check-deterministic-evals"
 REGRESSION_EXPERIMENT_NAME = "company-fit-check-llm-regression"
+MUTATION_EXPERIMENT_NAME = "company-fit-check-llm-mutation"
+EVAL_EXPERIMENT_NAME = DETERMINISTIC_EXPERIMENT_NAME
 
 
 def repo_root() -> Path:

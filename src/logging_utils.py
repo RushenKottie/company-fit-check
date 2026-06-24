@@ -7,7 +7,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from config import get_logging_settings
+from config import get_logging_settings, get_project_root
 
 _LOG_FORMAT = "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
 _LOG_DIR_NAME = ".tmp"
@@ -23,6 +23,8 @@ class _AzureHttpNoiseFilter(logging.Filter):
     """Reduce Azure SDK HTTP success noise while preserving failed response details."""
 
     def filter(self, record: logging.LogRecord) -> bool:
+        """Return whether the log record should be emitted at the configured level."""
+
         if record.name != _AZURE_HTTP_LOGGER_NAME:
             return True
 
@@ -36,6 +38,8 @@ class _AzureHttpNoiseFilter(logging.Filter):
         return target_level >= logging.getLogger().getEffectiveLevel()
 
     def _target_level(self, message: str) -> int | None:
+        """Return the adjusted log level for Azure HTTP messages when applicable."""
+
         if message.startswith("Request URL:"):
             return logging.DEBUG
 
@@ -49,12 +53,6 @@ class _AzureHttpNoiseFilter(logging.Filter):
         return logging.WARNING
 
 
-def _project_root() -> Path:
-    """Return the repository root based on this module location."""
-
-    return Path(__file__).resolve().parents[1]
-
-
 def get_log_file_path() -> Path:
     """Return the on-disk log file path used by the app."""
 
@@ -64,7 +62,7 @@ def get_log_file_path() -> Path:
 def get_tmp_dir_path() -> Path:
     """Return the project-local temporary directory path."""
 
-    log_dir = _project_root() / _LOG_DIR_NAME
+    log_dir = get_project_root() / _LOG_DIR_NAME
     log_dir.mkdir(parents=True, exist_ok=True)
     return log_dir
 

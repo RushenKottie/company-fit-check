@@ -35,20 +35,22 @@ _ARTIFACT_NAMESPACE: ContextVar[str | None] = ContextVar(
 
 
 class MlflowTrackingContext:
-    """Opaque tokens for one active MLflow workflow context."""
+    """Tracks the active MLflow run for the current workflow."""
 
     def __init__(
         self,
         run_id_token: Token[str | None] | None,
         started_fluent_run: bool = False,
     ) -> None:
+        """Create context metadata for a bound MLflow run."""
+
         self.run_id_token = run_id_token
         self.started_fluent_run = started_fluent_run
 
 
 @dataclass
 class TrackingCapture:
-    """In-memory observation of spans and artifacts for deterministic evaluation."""
+    """Stores captured spans and artifacts for deterministic evaluation."""
 
     spans: list[dict[str, Any]] = field(default_factory=list)
     artifacts: list[dict[str, Any]] = field(default_factory=list)
@@ -67,7 +69,11 @@ def bind_mlflow_run(run_id: str):
 
 @contextmanager
 def suspend_mlflow_run_termination():
-    """Prevent workflow finalization from terminating the current run."""
+    """Keep workflow finalization from closing a shared MLflow run.
+
+    Use this when a workflow should log its final state but leave the active run
+    open for additional work.
+    """
 
     token = _RUN_TERMINATION_SUSPENDED.set(True)
     try:
@@ -103,7 +109,7 @@ def bind_artifact_namespace(namespace: str | None):
 
 @contextmanager
 def bind_mlflow_experiment(experiment_name: str | None):
-    """Temporarily override the MLflow experiment used for new runs."""
+    """Temporarily bind the MLflow experiment used for new runs."""
 
     normalized_name = experiment_name.strip() if experiment_name else None
     token = _ACTIVE_EXPERIMENT_NAME.set(normalized_name)
@@ -114,7 +120,7 @@ def bind_mlflow_experiment(experiment_name: str | None):
 
 
 def get_capture_stack() -> list[dict[str, Any]]:
-    """Return the active capture stack without exposing a shared mutable default."""
+    """Return a copy of the current tracking capture stack."""
 
     return list(_TRACKING_CAPTURE_STACK.get() or [])
 

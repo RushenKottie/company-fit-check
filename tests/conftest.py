@@ -15,7 +15,7 @@ if str(SRC) not in sys.path:
 
 
 from evals.mutation.case_generator import MUTATION_CASE_COUNT
-from evals.user_simulator import list_available_case_ids
+from evals.nondeterministic.case_loader import list_available_case_ids
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

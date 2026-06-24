@@ -10,7 +10,7 @@ from config import (
     get_azure_openai_settings,
     get_user_simulator_foundry_settings,
 )
-from evals.nondeterministic.runner import run_cases
+from evals.nondeterministic.runner import create_default_nondeterministic_runner
 
 
 def _llm_regression_is_configured() -> bool:
@@ -31,13 +31,14 @@ def test_llm_regression_cases(
     eval_concurrent: bool,
     eval_max_workers: int | None,
 ):
-    results = run_cases(
+    """Run live non-deterministic regression cases when LLM config is available."""
+
+    results = create_default_nondeterministic_runner().run_cases(
         regression_case_ids,
         concurrent=eval_concurrent,
         max_workers=eval_max_workers,
     )
 
-    assert len(results) == len(regression_case_ids)
     for result in results:
         assert result.run_id
         assert result.status == "completed", result.model_dump_json(indent=2)

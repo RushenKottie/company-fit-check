@@ -23,8 +23,13 @@ from interfaces.chainlit.session import (
     set_workflow_state,
 )
 from logging_utils import configure_logging, get_logger
-from models.artifacts import GeneratedArtifact
-from models.state import CompanyFitState
+from models.artifacts import GeneratedCsvArtifact
+from models.state import (
+    SESSION_STATUS_COMPLETED,
+    SESSION_STATUS_FAILED,
+    SESSION_STATUS_NEEDS_CLARIFICATION,
+    CompanyFitState,
+)
 
 configure_logging()
 logger = get_logger(__name__)
@@ -41,7 +46,7 @@ async def on_chat_start() -> None:
 
 @cl.on_message
 async def on_message(message: cl.Message) -> None:
-    """Handle first-turn submissions and clarification replies."""
+    """Route each incoming message to the initial or clarification handler."""
 
     logger.info(
         "Received message content_length=%s attachments=%s",
@@ -49,7 +54,10 @@ async def on_message(message: cl.Message) -> None:
         len(getattr(message, "elements", None) or []),
     )
     current_state = get_workflow_state()
-    if current_state and current_state.get("session_status") == "needs_clarification":
+    if (
+        current_state
+        and current_state.get("session_status") == SESSION_STATUS_NEEDS_CLARIFICATION
+    ):
         logger.info("Routing incoming message to clarification handler.")
         await _handle_clarification_message(current_state, message)
         return
@@ -62,10 +70,10 @@ async def _handle_initial_message(message: cl.Message) -> None:
     """Process the initial prompt plus PDF upload."""
 
     prompt = message.content.strip()
-    pdf_path = _extract_single_pdf_path(message)
+    pdf_path = _extract_latest_pdf_path(message)
     if not prompt or pdf_path is None:
         logger.warning(
-            "Initial message missing prompt or single PDF prompt_present=%s pdf_path=%s",
+            "Initial message missing prompt or PDF prompt_present=%s pdf_path=%s",
             bool(prompt),
             pdf_path,
         )
@@ -85,7 +93,7 @@ async def _handle_clarification_message(
     state: CompanyFitState,
     message: cl.Message,
 ) -> None:
-    """Resume the workflow from a clarification turn."""
+    """Handle a clarification reply for the active workflow."""
 
     clarification = message.content.strip()
     if not clarification:
@@ -111,39 +119,44 @@ async def _deliver_result(result: SessionResult) -> None:
 
     status = result.state.get("session_status")
     logger.info("Delivering workflow result status=%s", status)
-    if status == "needs_clarification":
+    if status == SESSION_STATUS_NEEDS_CLARIFICATION:
         set_workflow_state(result.state)
         await cl.Message(content=result.assistant_message).send()
         return
 
-    clear_workflow_state()
-
-    if status == "failed":
+    if status == SESSION_STATUS_FAILED:
+        clear_workflow_state()
         await cl.Message(content=result.assistant_message).send()
         return
 
-    elements = []
-    if result.csv_artifact is not None:
-        elements.append(_build_file_element(result.csv_artifact))
+    if status == SESSION_STATUS_COMPLETED:
+        clear_workflow_state()
+        elements = []
+        if result.csv_artifact is not None:
+            elements.append(_build_file_element(result.csv_artifact))
 
+        await cl.Message(
+            content=result.assistant_message,
+            elements=elements,
+        ).send()
+        return
+
+    set_workflow_state(result.state)
     await cl.Message(
-        content=result.assistant_message,
-        elements=elements,
+        content=result.assistant_message or "The workflow is still running."
     ).send()
 
 
-def _extract_single_pdf_path(message: cl.Message) -> str | None:
-    """Return the single uploaded PDF path for the first-turn message."""
+def _extract_latest_pdf_path(message: cl.Message) -> str | None:
+    """Return the latest uploaded PDF path for the message."""
 
     elements = getattr(message, "elements", None) or []
-    pdf_paths = [
-        element_path
-        for element in elements
-        if (element_path := _element_pdf_path(element)) is not None
-    ]
-    if len(pdf_paths) != 1:
-        return None
-    return pdf_paths[0]
+    pdf_path = None
+    for element in elements:
+        element_path = _element_pdf_path(element)
+        if element_path is not None:
+            pdf_path = element_path
+    return pdf_path
 
 
 def _element_pdf_path(element: object) -> str | None:
@@ -163,7 +176,7 @@ def _element_pdf_path(element: object) -> str | None:
     return None
 
 
-def _build_file_element(artifact: GeneratedArtifact) -> cl.File:
+def _build_file_element(artifact: GeneratedCsvArtifact) -> cl.File:
     """Persist an artifact to a temp file and expose it as a download."""
 
     temp_dir = Path(tempfile.gettempdir()) / "company_fit_check_chainlit"

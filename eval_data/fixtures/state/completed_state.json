@@ -67,8 +67,47 @@
       "overall_score": 75.0
     }
   ],
+  "final_results": [
+    {
+      "company_name": "Fintech Labs",
+      "website_or_linkedin": "https://fintechlabs.example.com",
+      "location": "",
+      "industry": "fintech",
+      "company_size": "201-500",
+      "discovery_reason": "Fintech product environment.",
+      "overall_score": 78.0,
+      "axis_scores": [
+        {
+          "axis_name": "career-switch openness",
+          "score": 74.0
+        },
+        {
+          "axis_name": "fintech relevance",
+          "score": 82.0
+        }
+      ]
+    },
+    {
+      "company_name": "Payments Studio",
+      "website_or_linkedin": "https://paymentsstudio.example.com",
+      "location": "",
+      "industry": "fintech",
+      "company_size": "51-200",
+      "discovery_reason": "Product-heavy fintech environment.",
+      "overall_score": 75.0,
+      "axis_scores": [
+        {
+          "axis_name": "career-switch openness",
+          "score": 71.0
+        },
+        {
+          "axis_name": "fintech relevance",
+          "score": 79.0
+        }
+      ]
+    }
+  ],
   "user_input_interpretation_clarification_iterations": 0,
-  "company_search_clarification_iterations": 0,
   "session_status": "completed",
   "error": null
 }

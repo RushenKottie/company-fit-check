@@ -16,7 +16,7 @@
       },
       {
         "target": "application.workflow_actions.interpret_user_input",
-        "stub": "stub_interpret_user_input_requires_safe_prompt_without_clarification"
+        "stub": "stub_interpret_user_input_rejects_previous_axes_without_safe_prompt"
       },
       {
         "target": "application.workflow_actions.validate_user_input_interpretation",

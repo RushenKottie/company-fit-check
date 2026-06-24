@@ -86,8 +86,9 @@ class CaseExecutionResult(BaseModel):
     helper_output: Any = None
     csv_artifact: dict[str, Any] | None = None
     generated_artifacts: list[dict[str, Any]] = Field(default_factory=list)
-    observed_spans: list[dict[str, Any]] = Field(default_factory=list)
-    executed_span_names: list[str] = Field(default_factory=list)
+    executed_node_names: list[str] = Field(default_factory=list)
+    observed_mlflow_spans: list[dict[str, Any]] = Field(default_factory=list)
+    executed_mlflow_span_names: list[str] = Field(default_factory=list)
     status: str
     error: str | None = None
     uncaught_exception: str | None = None

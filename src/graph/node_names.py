@@ -12,18 +12,9 @@ class WorkflowNodeName(StrEnum):
     SIMPLIFY_CV = "simplify_cv"
     INTERPRET_USER_INPUT = "interpret_user_input"
     VALIDATE_USER_INPUT_INTERPRETATION = "validate_user_input_interpretation"
-    REFINE_COMPANY_SEARCH = "refine_company_search"
     SEARCH_COMPANIES = "search_companies"
     SCORE_COMPANIES = "score_companies"
-
-    @property
-    def span_name(self) -> str:
-        """Return the MLflow span name emitted for this graph node."""
-
-        return f"node.{self.value}"
+    PREPARE_FINAL_RESULTS = "prepare_final_results"
 
 
-class WorkflowRouteName(StrEnum):
-    """Stable names for non-node graph route outcomes."""
-
-    STOP = "stop"
+STOP_ROUTE = "stop"

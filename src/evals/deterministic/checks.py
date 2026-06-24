@@ -6,15 +6,20 @@ import csv
 import io
 import re
 
-from application.workflow_policy import MAX_CLARIFICATION_ITERATIONS
-from evals.deterministic.models import CaseExecutionResult, CheckResult
-from graph.node_names import WorkflowNodeName
-from llm.client import (
+from application.messages import (
     build_cv_cleanup_due_to_guardrail_message,
     build_generic_llm_failure_message,
     build_rephrase_due_to_guardrail_message,
 )
 from application.result_exports import RESULT_CSV_BASE_COLUMNS
+from application.workflow_policy import MAX_CLARIFICATION_ITERATIONS
+from evals.deterministic.models import CaseExecutionResult, CheckResult
+from graph.node_names import WorkflowNodeName
+from models.state import (
+    SESSION_STATUS_COMPLETED,
+    SESSION_STATUS_FAILED,
+    SESSION_STATUS_NEEDS_CLARIFICATION,
+)
 
 EMAIL_PATTERN = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", flags=re.IGNORECASE)
 PHONE_PATTERN = re.compile(r"\+?\d[\d\-\s()]{7,}\d")
@@ -34,28 +39,28 @@ def check_llm_uses_masked_cv_not_raw_cv(
 ) -> CheckResult:
     """Verify every LLM prompt that includes CV text uses the masked CV, not the raw CV."""
 
-    spans = result.observed_spans
+    observed_mlflow_spans = result.observed_mlflow_spans
     raw_cv_text = case_inputs.get("raw_cv_text", "")
     masked_cv_text = result.final_state_summary.get("masked_cv_text") or ""
-    offending_spans: list[str] = []
-    cv_llm_spans: list[str] = []
+    offending_llm_observations: list[str] = []
+    cv_llm_observations: list[str] = []
 
-    for span in spans:
-        span_name = str(span.get("name", ""))
-        if not span_name.startswith("llm."):
+    for mlflow_span in observed_mlflow_spans:
+        mlflow_span_name = str(mlflow_span.get("name", ""))
+        if not mlflow_span_name.startswith("llm."):
             continue
         prompt_text = "\n".join(
             message.get("content", "")
-            for message in span.get("prompt_messages", [])
+            for message in mlflow_span.get("prompt_messages", [])
         )
         raw_cv_reached_llm = bool(raw_cv_text) and raw_cv_text in prompt_text
         masked_cv_reached_llm = bool(masked_cv_text) and masked_cv_text in prompt_text
         if raw_cv_reached_llm or masked_cv_reached_llm:
-            cv_llm_spans.append(span_name)
+            cv_llm_observations.append(mlflow_span_name)
         if raw_cv_reached_llm:
-            offending_spans.append(span_name)
+            offending_llm_observations.append(mlflow_span_name)
 
-    passed = bool(cv_llm_spans) and not offending_spans
+    passed = bool(cv_llm_observations) and not offending_llm_observations
     return CheckResult(
         name="llm_uses_masked_cv_not_raw_cv",
         passed=passed,
@@ -65,20 +70,20 @@ def check_llm_uses_masked_cv_not_raw_cv(
             else "No masked-CV LLM prompt was observed or at least one LLM prompt included raw CV text."
         ),
         details={
-            "cv_llm_spans": cv_llm_spans,
-            "offending_spans": offending_spans,
+            "cv_llm_observations": cv_llm_observations,
+            "offending_llm_observations": offending_llm_observations,
         },
     )
 
 
 def check_masked_cv_has_no_contact_details(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify the masked CV is populated and free of contact or identifying details."""
 
     masked_cv_text = result.final_state_summary.get("masked_cv_text") or ""
-    matches = scan_text_for_pii(masked_cv_text)
+    matches = _scan_text_for_pii(masked_cv_text)
     return CheckResult(
         name="masked_cv_has_no_contact_details",
         passed=bool(masked_cv_text.strip()) and not matches,
@@ -93,46 +98,73 @@ def check_masked_cv_has_no_contact_details(
 
 def check_workflow_stops_on_masking_failure(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify masking failure stops the workflow before downstream stages run."""
 
-    downstream_spans = {
-        WorkflowNodeName.SIMPLIFY_CV.span_name,
-        WorkflowNodeName.INTERPRET_USER_INPUT.span_name,
-        WorkflowNodeName.SEARCH_COMPANIES.span_name,
-        WorkflowNodeName.SCORE_COMPANIES.span_name,
+    downstream_node_names = {
+        WorkflowNodeName.SIMPLIFY_CV.value,
+        WorkflowNodeName.INTERPRET_USER_INPUT.value,
+        WorkflowNodeName.SEARCH_COMPANIES.value,
+        WorkflowNodeName.SCORE_COMPANIES.value,
     }
-    unexpected = [name for name in result.executed_span_names if name in downstream_spans]
-    passed = result.status == "failed" and not unexpected
+    unexpected = [
+        name for name in result.executed_node_names if name in downstream_node_names
+    ]
+    passed = result.status == SESSION_STATUS_FAILED and not unexpected
     return CheckResult(
         name="workflow_stops_on_masking_failure",
         passed=passed,
         reason="Masking failure stopped the workflow cleanly." if passed else "Downstream stages ran after masking failure or the state did not fail.",
-        details={"unexpected_spans": unexpected},
+        details={"unexpected_nodes": unexpected},
     )
 
 
 def check_company_search_blocked_until_prereqs_valid(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
-    """Verify company search does not run when prerequisites are missing."""
+    """Verify company discovery does not run when prerequisites are missing."""
 
-    discovery_spans = [name for name in result.executed_span_names if name == "llm.discover_companies"]
+    search_nodes = [
+        name
+        for name in result.executed_node_names
+        if name == WorkflowNodeName.SEARCH_COMPANIES.value
+    ]
+    discovery_mlflow_observations = [
+        str(span.get("name", ""))
+        for span in result.observed_mlflow_spans
+        if span.get("name") == "llm.discover_companies"
+    ]
+    if (
+        result.entrypoint_kind == "node"
+        and result.entrypoint_target == WorkflowNodeName.SEARCH_COMPANIES.value
+    ):
+        search_blocked = not discovery_mlflow_observations
+    else:
+        search_blocked = not search_nodes
+
     error = result.error or ""
-    passed = result.status == "failed" and "Company search requires" in error and not discovery_spans
+    passed = (
+        result.status == SESSION_STATUS_FAILED
+        and "Company search requires" in error
+        and search_blocked
+    )
     return CheckResult(
         name="company_search_blocked_until_prereqs_valid",
         passed=passed,
         reason="Company search was blocked before discovery executed." if passed else "Company search prerequisites were not enforced deterministically.",
-        details={"error": error, "discovery_spans": discovery_spans},
+        details={
+            "error": error,
+            "search_nodes": search_nodes,
+            "discovery_mlflow_observations": discovery_mlflow_observations,
+        },
     )
 
 
 def check_clarification_loop_is_bounded(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify the clarification loop terminates at the configured max."""
 
@@ -140,7 +172,7 @@ def check_clarification_loop_is_bounded(
     expected_fragment = (
         f"did not make progress after {MAX_CLARIFICATION_ITERATIONS} attempts"
     )
-    passed = result.status == "failed" and expected_fragment in error
+    passed = result.status == SESSION_STATUS_FAILED and expected_fragment in error
     return CheckResult(
         name="clarification_loop_is_bounded",
         passed=passed,
@@ -155,12 +187,12 @@ def check_clarification_loop_is_bounded(
 
 def check_guardrail_4xx_requests_rephrase(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify guardrail 4xx failures ask the user to reformulate without failing."""
 
     passed = (
-        result.status == "needs_clarification"
+        result.status == SESSION_STATUS_NEEDS_CLARIFICATION
         and result.uncaught_exception is None
         and result.error is None
         and result.final_state_summary.get("clarification_target") == "user_input_interpretation"
@@ -198,18 +230,20 @@ def check_guardrail_4xx_requests_rephrase(
 
 def check_guardrail_4xx_rephrase_stops_workflow(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify workflow-level guardrail rephrase stops before downstream stages run."""
 
-    blocked_spans = {
-        WorkflowNodeName.VALIDATE_USER_INPUT_INTERPRETATION.span_name,
-        WorkflowNodeName.SEARCH_COMPANIES.span_name,
-        WorkflowNodeName.SCORE_COMPANIES.span_name,
+    blocked_node_names = {
+        WorkflowNodeName.VALIDATE_USER_INPUT_INTERPRETATION.value,
+        WorkflowNodeName.SEARCH_COMPANIES.value,
+        WorkflowNodeName.SCORE_COMPANIES.value,
     }
-    unexpected = [name for name in result.executed_span_names if name in blocked_spans]
+    unexpected = [
+        name for name in result.executed_node_names if name in blocked_node_names
+    ]
     passed = (
-        result.status == "needs_clarification"
+        result.status == SESSION_STATUS_NEEDS_CLARIFICATION
         and result.error is None
         and result.final_state_summary.get("clarification_target") == "user_input_interpretation"
         and not unexpected
@@ -223,8 +257,8 @@ def check_guardrail_4xx_rephrase_stops_workflow(
             else "Workflow continued into downstream stages after requesting reformulation."
         ),
         details={
-            "unexpected_spans": unexpected,
-            "executed_span_names": result.executed_span_names,
+            "unexpected_nodes": unexpected,
+            "executed_node_names": result.executed_node_names,
             "status": result.status,
             "error": result.error,
         },
@@ -235,7 +269,10 @@ def check_prompt_rephrase_replaces_blocked_prompt(
     result: CaseExecutionResult,
     case_inputs: dict,
 ) -> CheckResult:
-    """Verify a blocked prompt can be replaced by a reformulated prompt on resume."""
+    """
+    Check that a user can replace a blocked prompt and continue with the new
+    prompt when the workflow resumes.
+    """
 
     final_prompt = (
         (result.final_state_summary.get("input") or {}).get("prompt", "")
@@ -244,7 +281,7 @@ def check_prompt_rephrase_replaces_blocked_prompt(
     )
     original_prompt = case_inputs.get("prompt", "")
     passed = (
-        result.status == "completed"
+        result.status == SESSION_STATUS_COMPLETED
         and result.error is None
         and result.final_state_summary.get("guardrail_rephrase_source") is None
         and result.final_state_summary.get("latest_user_message_kind") == "prompt"
@@ -271,13 +308,17 @@ def check_prompt_rephrase_replaces_blocked_prompt(
 
 def check_guardrail_4xx_fails_with_restart(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
-    """Verify guardrail 4xx failures ask the user to restart the session."""
+    """
+    Check that a guardrail block during company search or scoring fails the
+    session and asks for a new session instead of treating it as a prompt
+    clarification.
+    """
 
     error = result.error or ""
     passed = (
-        result.status == "failed"
+        result.status == SESSION_STATUS_FAILED
         and result.uncaught_exception is None
         and error.startswith("Sorry, I couldn't continue because the model blocked this request")
         and "Please start a new session with another prompt or CV." in error
@@ -301,13 +342,13 @@ def check_guardrail_4xx_fails_with_restart(
 
 def check_guardrail_4xx_fails_with_cv_cleanup(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify CV simplification guardrail 4xx asks the user to clean the CV."""
 
     error = result.error or ""
     passed = (
-        result.status == "failed"
+        result.status == SESSION_STATUS_FAILED
         and result.uncaught_exception is None
         and error == build_cv_cleanup_due_to_guardrail_message()
     )
@@ -325,13 +366,13 @@ def check_guardrail_4xx_fails_with_cv_cleanup(
 
 def check_generic_llm_failure_is_sanitized(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify generic LLM failures show the sanitized support message."""
 
     error = result.error or ""
     passed = (
-        result.status == "failed"
+        result.status == SESSION_STATUS_FAILED
         and result.uncaught_exception is None
         and error == build_generic_llm_failure_message()
         and "Injected deterministic failure" not in error
@@ -350,9 +391,9 @@ def check_generic_llm_failure_is_sanitized(
 
 def check_score_shape_is_valid_for_all_companies(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
-    """Verify score validation helper accepted the payload."""
+    """Verify every discovered company has one score for each matching axis."""
 
     passed = result.helper_output in {None, ""}
     return CheckResult(
@@ -365,7 +406,7 @@ def check_score_shape_is_valid_for_all_companies(
 
 def check_csv_schema_is_valid(
     result: CaseExecutionResult,
-    case_inputs: dict,
+    _case_inputs: dict,
 ) -> CheckResult:
     """Verify CSV output exists and follows the expected schema."""
 
@@ -433,7 +474,7 @@ def run_requested_checks(result: CaseExecutionResult, check_names: list[str]) ->
     return outputs
 
 
-def scan_text_for_pii(text: str) -> list[str]:
+def _scan_text_for_pii(text: str) -> list[str]:
     """Return contact or identifying PII-like matches found in text."""
 
     matches: list[str] = []

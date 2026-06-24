@@ -2,11 +2,15 @@
 
 from logging_utils import get_logger
 from models.input import UserInput
-from models.state import CompanyFitState, CompanySearchCriteria
+from models.state import (
+    PII_MASKING_STATUS_NOT_STARTED,
+    SESSION_STATUS_RUNNING,
+    CompanyFitState,
+    CompanySearchCriteria,
+)
 
 from application.workflow_policy import is_pending_guardrail_rephrase
 from application.workflow_transitions import (
-    increment_company_search_clarification_iterations,
     increment_user_input_clarification_iterations,
     mark_running,
 )
@@ -25,12 +29,13 @@ def create_initial_state(user_input: UserInput, *, run_id: str) -> CompanyFitSta
     return CompanyFitState(
         input=user_input,
         masked_cv_text=None,
-        pii_masking_status="not_started",
+        pii_masking_status=PII_MASKING_STATUS_NOT_STARTED,
         simplified_cv_text=None,
         company_search_criteria=CompanySearchCriteria(),
         axes=[],
         companies=[],
         company_scores=[],
+        final_results=[],
         pending_clarification_message=None,
         latest_clarification_response=None,
         clarification_target=None,
@@ -39,8 +44,7 @@ def create_initial_state(user_input: UserInput, *, run_id: str) -> CompanyFitSta
         guardrail_rephrase_source=None,
         run_id=run_id,
         user_input_interpretation_clarification_iterations=0,
-        company_search_clarification_iterations=0,
-        session_status="running",
+        session_status=SESSION_STATUS_RUNNING,
         error=None,
     )
 
@@ -57,9 +61,7 @@ def apply_clarification_to_state(
         len(user_response),
     )
     is_guardrail_rephrase = is_pending_guardrail_rephrase(state)
-    if state.get("clarification_target") == "company_search":
-        increment_company_search_clarification_iterations(state)
-    elif not is_guardrail_rephrase:
+    if not is_guardrail_rephrase:
         increment_user_input_clarification_iterations(state)
 
     if is_guardrail_rephrase:

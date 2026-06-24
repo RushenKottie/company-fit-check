@@ -10,8 +10,6 @@ from evals.user_simulator.models import (
 )
 from evals.user_simulator.service import (
     UserSimulator,
-    create_default_user_simulator,
-    list_available_case_ids,
 )
 
 __all__ = [
@@ -22,6 +20,4 @@ __all__ = [
     "StartCaseResponse",
     "UserSimulator",
     "UserSimulatorError",
-    "create_default_user_simulator",
-    "list_available_case_ids",
 ]

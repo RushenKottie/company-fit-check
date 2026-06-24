@@ -6,6 +6,7 @@ from typing import Any
 import uuid
 
 import mlflow
+from pydantic import BaseModel, Field
 
 from config import get_azure_openai_settings, get_mlflow_settings
 from infrastructure.mlflow.artifacts import (
@@ -15,13 +16,13 @@ from infrastructure.mlflow.artifacts import (
 )
 from infrastructure.mlflow.common import (
     ensure_experiment,
-    get_effective_experiment_name,
     get_mlflow_client,
     is_tracking_enabled,
-    json_ready,
+    to_json_safe,
+    resolve_experiment_name,
     safe_mlflow_call,
     utc_now_iso,
-    timestamp_slug,
+    artifact_timestamp,
 )
 from infrastructure.mlflow.context import (
     _ACTIVE_RUN_ID,
@@ -30,9 +31,48 @@ from infrastructure.mlflow.context import (
 )
 from logging_utils import get_logger
 from models.input import UserInput
-from models.state import CompanyFitState
+from models.state import (
+    Axis,
+    ClarificationTarget,
+    CompanyCandidate,
+    SESSION_STATUS_COMPLETED,
+    TERMINAL_SESSION_STATUSES,
+    CompanyScore,
+    CompanyFitState,
+    CompanySearchCriteria,
+    FinalCompanyResult,
+    SessionStatus,
+)
 
 logger = get_logger(__name__)
+
+
+class WorkflowInputSnapshot(BaseModel):
+    """Serializable user input metadata for an MLflow workflow snapshot."""
+
+    prompt: str
+    cv_pdf_bytes_length: int
+
+
+class WorkflowStateSnapshot(BaseModel):
+    """Serializable MLflow artifact snapshot of the workflow state."""
+
+    masked_cv_text: str | None = None
+    pii_masking_status: str | None = None
+    simplified_cv_text: str | None = None
+    company_search_criteria: CompanySearchCriteria | None = None
+    axes: list[Axis] = Field(default_factory=list)
+    companies: list[CompanyCandidate] = Field(default_factory=list)
+    company_scores: list[CompanyScore] = Field(default_factory=list)
+    final_results: list[FinalCompanyResult] = Field(default_factory=list)
+    pending_clarification_message: str | None = None
+    latest_clarification_response: str | None = None
+    clarification_target: ClarificationTarget | None = None
+    run_id: str | None = None
+    user_input_interpretation_clarification_iterations: int | None = None
+    session_status: SessionStatus | None = None
+    error: str | None = None
+    input: WorkflowInputSnapshot | None = None
 
 
 def create_run_id(user_input: UserInput) -> str:
@@ -57,7 +97,7 @@ def activate_mlflow_tracking(state: CompanyFitState) -> MlflowTrackingContext | 
     settings = get_mlflow_settings()
     safe_mlflow_call(
         "set MLflow experiment",
-        lambda: mlflow.set_experiment(get_effective_experiment_name(settings)),
+        lambda: mlflow.set_experiment(resolve_experiment_name(settings)),
         None,
     )
     update_run_metadata(run_id, state)
@@ -104,7 +144,7 @@ def finalize_mlflow_tracking(state: CompanyFitState) -> None:
 
     update_run_metadata(run_id, state)
     log_json_artifact(
-        f"workflow/state-{timestamp_slug()}.json",
+        f"workflow/state-{artifact_timestamp()}.json",
         serialize_workflow_state(state),
     )
 
@@ -112,7 +152,7 @@ def finalize_mlflow_tracking(state: CompanyFitState) -> None:
         log_text_artifact("workflow/error.txt", state["error"])
 
     status = state.get("session_status")
-    if status in {"completed", "failed"}:
+    if status in TERMINAL_SESSION_STATUSES:
         log_json_artifact(
             "workflow/final-status.json",
             {
@@ -123,7 +163,7 @@ def finalize_mlflow_tracking(state: CompanyFitState) -> None:
         )
         client = get_mlflow_client()
         if client is not None and not _RUN_TERMINATION_SUSPENDED.get():
-            mlflow_status = "FINISHED" if status == "completed" else "FAILED"
+            mlflow_status = "FINISHED" if status == SESSION_STATUS_COMPLETED else "FAILED"
             safe_mlflow_call(
                 "set run terminated",
                 lambda: client.set_terminated(run_id, status=mlflow_status),
@@ -196,7 +236,7 @@ def _create_session_run(user_input: UserInput) -> str:
 
 
 def update_run_metadata(run_id: str, state: CompanyFitState) -> None:
-    """Refresh run tags that mirror the current workflow state."""
+    """Update MLflow tags with the latest workflow state."""
 
     client = get_mlflow_client()
     if client is None:
@@ -230,15 +270,6 @@ def update_run_metadata(run_id: str, state: CompanyFitState) -> None:
         None,
     )
     safe_mlflow_call(
-        "set company-search clarification iteration tag",
-        lambda: client.set_tag(
-            run_id,
-            "company_search_clarification_iterations",
-            str(state.get("company_search_clarification_iterations", 0)),
-        ),
-        None,
-    )
-    safe_mlflow_call(
         "set last-updated tag",
         lambda: client.set_tag(run_id, "last_updated_at_utc", utc_now_iso()),
         None,
@@ -249,30 +280,31 @@ def serialize_workflow_state(state: CompanyFitState) -> dict[str, Any]:
     """Convert the workflow state into JSON-safe data without raw PDF bytes."""
 
     user_input = state.get("input")
-    serialized: dict[str, Any] = {
-        "masked_cv_text": state.get("masked_cv_text"),
-        "pii_masking_status": state.get("pii_masking_status"),
-        "simplified_cv_text": state.get("simplified_cv_text"),
-        "company_search_criteria": json_ready(state.get("company_search_criteria")),
-        "axes": json_ready(state.get("axes", [])),
-        "companies": json_ready(state.get("companies", [])),
-        "company_scores": json_ready(state.get("company_scores", [])),
-        "pending_clarification_message": state.get("pending_clarification_message"),
-        "latest_clarification_response": state.get("latest_clarification_response"),
-        "clarification_target": state.get("clarification_target"),
-        "run_id": state.get("run_id"),
-        "user_input_interpretation_clarification_iterations": state.get(
+    snapshot = WorkflowStateSnapshot(
+        masked_cv_text=state.get("masked_cv_text"),
+        pii_masking_status=state.get("pii_masking_status"),
+        simplified_cv_text=state.get("simplified_cv_text"),
+        company_search_criteria=state.get("company_search_criteria"),
+        axes=state.get("axes", []),
+        companies=state.get("companies", []),
+        company_scores=state.get("company_scores", []),
+        final_results=state.get("final_results", []),
+        pending_clarification_message=state.get("pending_clarification_message"),
+        latest_clarification_response=state.get("latest_clarification_response"),
+        clarification_target=state.get("clarification_target"),
+        run_id=state.get("run_id"),
+        user_input_interpretation_clarification_iterations=state.get(
             "user_input_interpretation_clarification_iterations"
         ),
-        "company_search_clarification_iterations": state.get(
-            "company_search_clarification_iterations"
+        session_status=state.get("session_status"),
+        error=state.get("error"),
+        input=(
+            WorkflowInputSnapshot(
+                prompt=user_input.prompt,
+                cv_pdf_bytes_length=len(user_input.cv_pdf_bytes),
+            )
+            if user_input is not None
+            else None
         ),
-        "session_status": state.get("session_status"),
-        "error": state.get("error"),
-    }
-    if user_input is not None:
-        serialized["input"] = {
-            "prompt": user_input.prompt,
-            "cv_pdf_bytes_length": len(user_input.cv_pdf_bytes),
-        }
-    return serialized
+    )
+    return to_json_safe(snapshot)

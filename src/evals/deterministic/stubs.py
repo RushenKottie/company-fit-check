@@ -22,6 +22,8 @@ class FakeGuardrail4xxError(RuntimeError):
     """Deterministic fake LLM guardrail error with a 4xx status code."""
 
     def __init__(self, message: str = "Guardrail blocked the request with status 400.") -> None:
+        """Create the fake error with an Azure-like status code attribute."""
+
         super().__init__(message)
         self.status_code = 400
 
@@ -132,13 +134,13 @@ def stub_interpret_user_input_requires_safe_rephrase(
     )
 
 
-def stub_interpret_user_input_requires_safe_prompt_without_clarification(
+def stub_interpret_user_input_rejects_previous_axes_without_safe_prompt(
     prompt: str,
     simplified_cv_text: str,
     clarification: str | None = None,
     previous_axes: list[Axis] | None = None,
 ) -> UserInputInterpretation:
-    """Succeed only when a guardrail rephrase replaces prior clarification context."""
+    """Return interpretation unless previous axes arrive without a safe prompt."""
 
     if not previous_axes:
         return stub_interpret_user_input(
@@ -196,7 +198,7 @@ def stub_validate_user_input_interpretation_needs_clarification_once(
 
 def stub_discover_companies(
     company_search_criteria: CompanySearchCriteria,
-    limit: int = 500,
+    limit: int = 5,
 ):
     """Deterministic replacement for company discovery."""
 
@@ -283,13 +285,13 @@ def stub_score_companies(
     return scores
 
 
-def raise_runtime_error(*args, **kwargs):
+def raise_runtime_error(*_args, **_kwargs):
     """Deterministic replacement that raises a runtime error."""
 
     raise RuntimeError("Injected deterministic failure.")
 
 
-def raise_guardrail_4xx_error(*args, **kwargs):
+def raise_guardrail_4xx_error(*_args, **_kwargs):
     """Deterministic replacement that raises a fake guardrail 4xx error."""
 
     raise FakeGuardrail4xxError(
@@ -297,7 +299,7 @@ def raise_guardrail_4xx_error(*args, **kwargs):
     )
 
 
-def raise_guardrail_message_only_error(*args, **kwargs):
+def raise_guardrail_message_only_error(*_args, **_kwargs):
     """Deterministic replacement that raises a guardrail-like error without status metadata."""
 
     raise RuntimeError(
@@ -310,7 +312,7 @@ STUB_REGISTRY = {
     "stub_interpret_user_input": stub_interpret_user_input,
     "stub_interpret_user_input_returns_only_search_criteria": stub_interpret_user_input_returns_only_search_criteria,
     "stub_interpret_user_input_requires_safe_rephrase": stub_interpret_user_input_requires_safe_rephrase,
-    "stub_interpret_user_input_requires_safe_prompt_without_clarification": stub_interpret_user_input_requires_safe_prompt_without_clarification,
+    "stub_interpret_user_input_rejects_previous_axes_without_safe_prompt": stub_interpret_user_input_rejects_previous_axes_without_safe_prompt,
     "stub_validate_user_input_interpretation": stub_validate_user_input_interpretation,
     "stub_validate_user_input_interpretation_needs_clarification": stub_validate_user_input_interpretation_needs_clarification,
     "stub_validate_user_input_interpretation_needs_clarification_once": stub_validate_user_input_interpretation_needs_clarification_once,

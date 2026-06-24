@@ -59,6 +59,8 @@ class UserSimulatorError(RuntimeError):
     """Typed simulator error returned to the runner layer."""
 
     def __init__(self, code: str, message: str) -> None:
+        """Create an error with a stable machine-readable code."""
+
         super().__init__(message)
         self.code = code
         self.message = message

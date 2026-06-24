@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from dotenv import dotenv_values, find_dotenv
+from evals import MUTATION_EXPERIMENT_NAME, REGRESSION_EXPERIMENT_NAME
 
 
 @dataclass(frozen=True)
@@ -38,7 +39,7 @@ class UserSimulatorFoundrySettings:
     endpoint: str | None
     api_key: str | None
     model: str | None
-    temperature: float | None
+    temperature: float
     max_tokens: int
 
     @property
@@ -102,7 +103,7 @@ class LoggingSettings:
     level: str
 
 
-def _project_root() -> Path:
+def get_project_root() -> Path:
     """Return the repository root based on this module location."""
 
     return Path(__file__).resolve().parents[1]
@@ -115,23 +116,14 @@ def _load_env_values() -> dict[str, str]:
     env_path = find_dotenv(usecwd=True)
     file_values = dotenv_values(env_path) if env_path else {}
     merged = {
-        key: normalized
+        key: stripped
         for key, value in file_values.items()
-        if (normalized := _normalize_env_value(value)) is not None
+        if value is not None and (stripped := value.strip())
     }
     for key, value in os.environ.items():
-        if (normalized := _normalize_env_value(value)) is not None:
-            merged[key] = normalized
+        if stripped := value.strip():
+            merged[key] = stripped
     return merged
-
-
-def _normalize_env_value(value: str | None) -> str | None:
-    """Return a stripped env value, treating empty strings as missing."""
-
-    if value is None:
-        return None
-    normalized = value.strip()
-    return normalized or None
 
 
 def _env(values: dict[str, str], name: str, default: str | None = None) -> str | None:
@@ -169,50 +161,16 @@ def get_azure_openai_settings() -> AzureOpenAISettings:
 
 
 @lru_cache(maxsize=1)
-def get_user_simulator_azure_openai_settings() -> AzureOpenAISettings:
-    """Load Azure OpenAI settings for the user simulator from environment values."""
-
-    values = _load_env_values()
-
-    return AzureOpenAISettings(
-        api_key=(
-            _env(values, "USER_SIMULATOR_AZURE_OPENAI_API_KEY")
-            or _env(values, "AZURE_OPENAI_API_KEY")
-        ),
-        endpoint=(
-            _env(values, "USER_SIMULATOR_AZURE_OPENAI_ENDPOINT")
-            or _env(values, "AZURE_OPENAI_ENDPOINT")
-        ),
-        deployment=_env(values, "USER_SIMULATOR_AZURE_OPENAI_DEPLOYMENT"),
-        api_version=(
-            _env(values, "USER_SIMULATOR_AZURE_OPENAI_API_VERSION")
-            or _env(values, "AZURE_OPENAI_API_VERSION")
-        ),
-        temperature=float(
-            _env(values, "USER_SIMULATOR_AZURE_OPENAI_TEMPERATURE")
-            or _env(values, "AZURE_OPENAI_TEMPERATURE")
-            or "0"
-        ),
-        max_tokens=int(
-            _env(values, "USER_SIMULATOR_AZURE_OPENAI_MAX_TOKENS")
-            or _env(values, "AZURE_OPENAI_MAX_TOKENS")
-            or "5000"
-        ),
-    )
-
-
-@lru_cache(maxsize=1)
 def get_user_simulator_foundry_settings() -> UserSimulatorFoundrySettings:
     """Load Anthropic Foundry settings for the user simulator from environment values."""
 
     values = _load_env_values()
-    temperature_value = _env(values, "USER_SIMULATOR_FOUNDRY_TEMPERATURE")
 
     return UserSimulatorFoundrySettings(
         endpoint=_env(values, "USER_SIMULATOR_FOUNDRY_ENDPOINT"),
         api_key=_env(values, "USER_SIMULATOR_FOUNDRY_API_KEY"),
         model=_env(values, "USER_SIMULATOR_FOUNDRY_MODEL"),
-        temperature=float(temperature_value) if temperature_value else None,
+        temperature=_float_env(values, "USER_SIMULATOR_FOUNDRY_TEMPERATURE", "0"),
         max_tokens=_int_env(values, "USER_SIMULATOR_FOUNDRY_MAX_TOKENS", "5000"),
     )
 
@@ -223,6 +181,8 @@ def get_llm_judge_azure_openai_settings() -> LlmJudgeSettings:
 
     values = _load_env_values()
 
+    # The judge currently falls back to the same model config as the agent.
+    # A production setup should use separate judge-specific config values.
     return LlmJudgeSettings(
         api_key=(
             _env(values, "LLM_JUDGE_AZURE_OPENAI_API_KEY")
@@ -258,16 +218,16 @@ def get_mlflow_settings() -> MlflowSettings:
     """Load MLflow and Azure Blob settings from environment values."""
 
     values = _load_env_values()
-    default_tracking_path = (_project_root() / ".mlruns").resolve()
+    default_tracking_path = (get_project_root() / ".mlruns").resolve()
     tracking_uri = _env(values, "MLFLOW_TRACKING_URI") or default_tracking_path.as_uri()
     experiment_name = _env(values, "MLFLOW_EXPERIMENT_NAME") or "company-fit-check"
     regression_experiment_name = (
         _env(values, "MLFLOW_REGRESSION_EXPERIMENT_NAME")
-        or "company-fit-check-llm-regression"
+        or REGRESSION_EXPERIMENT_NAME
     )
     mutation_experiment_name = (
         _env(values, "MLFLOW_MUTATION_EXPERIMENT_NAME")
-        or "company-fit-check-llm-mutation"
+        or MUTATION_EXPERIMENT_NAME
     )
     artifact_root = _env(values, "MLFLOW_ARTIFACT_ROOT")
     azure_storage_connection_string = (
