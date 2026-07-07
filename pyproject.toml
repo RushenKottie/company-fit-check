@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
   "anthropic",
+  "azureml-mlflow",
   "azure-storage-blob",
   "chainlit",
   "langchain-core",

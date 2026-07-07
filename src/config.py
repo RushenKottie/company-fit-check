@@ -1,12 +1,17 @@
 """Runtime configuration helpers."""
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import StrEnum
 from functools import lru_cache
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dotenv import dotenv_values, find_dotenv
-from evals import MUTATION_EXPERIMENT_NAME, REGRESSION_EXPERIMENT_NAME
+
+if TYPE_CHECKING:
+    from mlflow import MlflowClient
 
 
 @dataclass(frozen=True)
@@ -72,28 +77,88 @@ class LlmJudgeSettings:
         )
 
 
+class MlflowTrackingMode(StrEnum):
+    """Supported MLflow tracking backends."""
+
+    LOCAL = "local"
+    AZUREML = "azureml"
+    REMOTE = "remote"
+
+
 @dataclass(frozen=True)
-class MlflowSettings:
-    """Resolved MLflow and Azure Blob settings for the app."""
+class MlflowSettings(ABC):
+    """Resolved MLflow settings shared by all tracking backends."""
 
     tracking_uri: str
     experiment_name: str
-    regression_experiment_name: str
-    mutation_experiment_name: str
-    artifact_root: str | None
-    azure_storage_connection_string: str | None
 
     @property
     def is_configured(self) -> bool:
-        """Return whether the MLflow + Blob persistence config is complete."""
+        """Return whether this validated settings object can be used."""
 
-        if not self.tracking_uri:
-            return False
-        if not self.artifact_root:
-            return True
-        if self.artifact_root.startswith("wasbs://"):
-            return bool(self.azure_storage_connection_string)
         return True
+
+    @abstractmethod
+    def configure_environment(self) -> None:
+        """Prepare process environment required by the tracking backend."""
+
+    @abstractmethod
+    def create_experiment(self, client: "MlflowClient", experiment_name: str) -> str:
+        """Create an experiment using backend-specific artifact behavior."""
+
+
+@dataclass(frozen=True)
+class LocalMlflowSettings(MlflowSettings):
+    """Local MLflow SQL tracking with external artifact storage."""
+
+    artifact_root: str
+    azure_storage_connection_string: str | None
+
+    def configure_environment(self) -> None:
+        """Expose Azure Blob credentials for local MLflow artifact writes/reads."""
+
+        if self.azure_storage_connection_string:
+            os.environ["AZURE_STORAGE_CONNECTION_STRING"] = (
+                self.azure_storage_connection_string
+            )
+
+    def create_experiment(self, client: "MlflowClient", experiment_name: str) -> str:
+        """Create a local SQL-backed experiment with the configured artifact root."""
+
+        return client.create_experiment(
+            experiment_name,
+            artifact_location=self.artifact_root,
+        )
+
+
+@dataclass(frozen=True)
+class AzureMlflowSettings(MlflowSettings):
+    """Azure ML / Foundry MLflow tracking settings."""
+
+    def configure_environment(self) -> None:
+        """Azure MLflow uses the configured azureml:// tracking URI."""
+
+        return None
+
+    def create_experiment(self, client: "MlflowClient", experiment_name: str) -> str:
+        """Create an Azure MLflow experiment with Azure-managed artifacts."""
+
+        return client.create_experiment(experiment_name)
+
+
+@dataclass(frozen=True)
+class RemoteMlflowSettings(MlflowSettings):
+    """Remote MLflow tracking server settings."""
+
+    def configure_environment(self) -> None:
+        """Remote MLflow uses the configured HTTP tracking URI."""
+
+        return None
+
+    def create_experiment(self, client: "MlflowClient", experiment_name: str) -> str:
+        """Create an experiment using the remote tracking server defaults."""
+
+        return client.create_experiment(experiment_name)
 
 
 @dataclass(frozen=True)
@@ -215,32 +280,78 @@ def get_llm_judge_azure_openai_settings() -> LlmJudgeSettings:
 
 @lru_cache(maxsize=1)
 def get_mlflow_settings() -> MlflowSettings:
-    """Load MLflow and Azure Blob settings from environment values."""
+    """Load MLflow settings from environment values."""
 
     values = _load_env_values()
-    default_tracking_path = (get_project_root() / ".mlruns").resolve()
-    tracking_uri = _env(values, "MLFLOW_TRACKING_URI") or default_tracking_path.as_uri()
-    experiment_name = _env(values, "MLFLOW_EXPERIMENT_NAME") or "company-fit-check"
-    regression_experiment_name = (
-        _env(values, "MLFLOW_REGRESSION_EXPERIMENT_NAME")
-        or REGRESSION_EXPERIMENT_NAME
-    )
-    mutation_experiment_name = (
-        _env(values, "MLFLOW_MUTATION_EXPERIMENT_NAME")
-        or MUTATION_EXPERIMENT_NAME
-    )
-    artifact_root = _env(values, "MLFLOW_ARTIFACT_ROOT")
-    azure_storage_connection_string = (
-        _env(values, "AZURE_STORAGE_CONNECTION_STRING")
-    )
+    raw_tracking_mode = _env(values, "MLFLOW_TRACKING_MODE")
+    if not raw_tracking_mode:
+        raise ValueError("MLFLOW_TRACKING_MODE is required: local, azureml, or remote")
 
-    return MlflowSettings(
+    tracking_mode = MlflowTrackingMode(raw_tracking_mode.lower())
+    experiment_name = _env(values, "MLFLOW_EXPERIMENT_NAME") or "company-fit-check"
+    common_settings = {
+        "experiment_name": experiment_name,
+    }
+
+    if tracking_mode is MlflowTrackingMode.LOCAL:
+        tracking_uri = _env(values, "MLFLOW_TRACKING_URI")
+        artifact_root = _env(values, "MLFLOW_ARTIFACT_ROOT")
+        azure_storage_connection_string = _env(values, "AZURE_STORAGE_CONNECTION_STRING")
+
+        if not tracking_uri:
+            raise ValueError(
+                "MLFLOW_TRACKING_URI is required when MLFLOW_TRACKING_MODE=local"
+            )
+        if not tracking_uri.startswith("sqlite:///"):
+            raise ValueError(
+                "MLFLOW_TRACKING_MODE=local requires a sqlite:/// tracking URI"
+            )
+        if not artifact_root:
+            raise ValueError(
+                "MLFLOW_ARTIFACT_ROOT is required when MLFLOW_TRACKING_MODE=local"
+            )
+        if artifact_root.startswith("wasbs://") and not azure_storage_connection_string:
+            raise ValueError(
+                "AZURE_STORAGE_CONNECTION_STRING is required when local MLflow "
+                "artifacts use wasbs://"
+            )
+
+        return LocalMlflowSettings(
+            tracking_uri=tracking_uri,
+            artifact_root=artifact_root,
+            azure_storage_connection_string=azure_storage_connection_string,
+            **common_settings,
+        )
+
+    if tracking_mode is MlflowTrackingMode.AZUREML:
+        tracking_uri = _env(values, "MLFLOW_TRACKING_URI")
+        if not tracking_uri:
+            raise ValueError(
+                "MLFLOW_TRACKING_URI is required when MLFLOW_TRACKING_MODE=azureml"
+            )
+        if not tracking_uri.startswith("azureml://"):
+            raise ValueError(
+                "MLFLOW_TRACKING_MODE=azureml requires an azureml:// tracking URI"
+            )
+
+        return AzureMlflowSettings(
+            tracking_uri=tracking_uri,
+            **common_settings,
+        )
+
+    tracking_uri = _env(values, "MLFLOW_TRACKING_URI")
+    if not tracking_uri:
+        raise ValueError(
+            "MLFLOW_TRACKING_URI is required when MLFLOW_TRACKING_MODE=remote"
+        )
+    if not tracking_uri.startswith(("http://", "https://")):
+        raise ValueError(
+            "MLFLOW_TRACKING_MODE=remote requires an http:// or https:// tracking URI"
+        )
+
+    return RemoteMlflowSettings(
         tracking_uri=tracking_uri,
-        experiment_name=experiment_name,
-        regression_experiment_name=regression_experiment_name,
-        mutation_experiment_name=mutation_experiment_name,
-        artifact_root=artifact_root,
-        azure_storage_connection_string=azure_storage_connection_string,
+        **common_settings,
     )
 
 
