@@ -9,7 +9,7 @@ import mlflow
 from mlflow import MlflowClient
 
 from config import get_mlflow_settings
-from evals import DETERMINISTIC_EXPERIMENT_NAME, repo_root
+from evals import DETERMINISTIC_EXPERIMENT_NAME
 from evals.deterministic.models import CaseExecutionResult
 from evals.deterministic.scorers import ALL_SCORERS
 
@@ -25,17 +25,13 @@ def get_eval_client() -> MlflowClient:
 def ensure_eval_experiment() -> str:
     """Create or fetch the deterministic eval experiment."""
 
+    settings = get_mlflow_settings()
     client = get_eval_client()
     experiment = client.get_experiment_by_name(DETERMINISTIC_EXPERIMENT_NAME)
     if experiment is not None:
         return experiment.experiment_id
 
-    artifact_root = (repo_root() / ".mlflow-eval-artifacts").resolve()
-    artifact_root.mkdir(parents=True, exist_ok=True)
-    return client.create_experiment(
-        DETERMINISTIC_EXPERIMENT_NAME,
-        artifact_location=artifact_root.as_uri(),
-    )
+    return settings.create_experiment(client, DETERMINISTIC_EXPERIMENT_NAME)
 
 
 def build_eval_row(result: CaseExecutionResult) -> dict[str, Any]:
