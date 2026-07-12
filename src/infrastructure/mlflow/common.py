@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, TypeVar
-import os
 import re
 
 import mlflow
@@ -18,7 +17,6 @@ from logging_utils import get_logger
 
 logger = get_logger(__name__)
 T = TypeVar("T")
-_MISSING_CONFIG_WARNING_EMITTED = False
 
 
 def safe_mlflow_call(description: str, operation: Callable[[], T], default: T) -> T:
@@ -40,18 +38,12 @@ def ensure_experiment(client: MlflowClient) -> str | None:
     if experiment is not None:
         return experiment.experiment_id
 
-    if settings.artifact_root:
-        experiment_id = client.create_experiment(
-            experiment_name,
-            artifact_location=settings.artifact_root,
-        )
-    else:
-        experiment_id = client.create_experiment(experiment_name)
+    experiment_id = settings.create_experiment(client, experiment_name)
     logger.info(
-        "Created MLflow experiment name=%s experiment_id=%s artifact_root=%s",
+        "Created MLflow experiment name=%s experiment_id=%s settings=%s",
         experiment_name,
         experiment_id,
-        settings.artifact_root,
+        type(settings).__name__,
     )
     return experiment_id
 
@@ -69,28 +61,16 @@ def get_mlflow_client() -> MlflowClient | None:
         return None
 
     settings = get_mlflow_settings()
-    os.environ["AZURE_STORAGE_CONNECTION_STRING"] = (
-        settings.azure_storage_connection_string or ""
-    )
+    settings.configure_environment()
     mlflow.set_tracking_uri(settings.tracking_uri)
     return MlflowClient(tracking_uri=settings.tracking_uri)
 
 
 def is_tracking_enabled() -> bool:
-    """Return whether MLflow + Blob persistence is configured."""
-
-    global _MISSING_CONFIG_WARNING_EMITTED
+    """Return whether the required MLflow settings object can be used."""
 
     settings = get_mlflow_settings()
-    if settings.is_configured:
-        return True
-
-    if not _MISSING_CONFIG_WARNING_EMITTED:
-        logger.warning(
-            "MLflow tracking is disabled because required settings are incomplete."
-        )
-        _MISSING_CONFIG_WARNING_EMITTED = True
-    return False
+    return settings.is_configured
 
 
 def to_json_safe(value: Any) -> Any:

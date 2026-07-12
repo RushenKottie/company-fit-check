@@ -55,11 +55,6 @@ logic.
   deterministic and regression evaluation runs.
 - pytest - deterministic evaluation execution and regression test support.
 
-### Storage
-
-- Azure Blob Storage - remote artifact storage for MLflow-backed runs when
-  configured.
-
 ### Privacy and Data Protection
 
 - Microsoft Presidio - local PII detection and anonymization before CV text is
@@ -88,12 +83,13 @@ and the evaluation framework:
 - `eval_data` - evaluation cases, fixture CVs, saved workflow states, and
   mutation configuration.
 - `img` - architecture and evaluation diagrams used in this README.
+- `Dockerfile` - container image definition for the main Chainlit application.
+- `infra/mlflow-server/Dockerfile` - container image definition for the
+  standalone MLflow tracking server.
 
-## How to Run
+## How to Run Locally
 
-In the near future, Company Fit Check is expected to be hosted in Azure and made
-available publicly, so users will not need to run the project locally. Until
-then, you can run it on your machine with your own Azure OpenAI model
+You can run Company Fit Check on your machine with your own Azure OpenAI model
 deployment.
 
 Create a virtual environment and install the project dependencies:
@@ -115,22 +111,36 @@ AZURE_OPENAI_TEMPERATURE=0
 AZURE_OPENAI_MAX_TOKENS=5000
 ```
 
-To enable MLflow monitoring, add the tracking configuration to the same `.env`
-file. If these values are omitted, the app uses a local `.mlruns` tracking
-directory by default.
+Add the MLflow tracking configuration to the same `.env` file.
+`MLFLOW_TRACKING_MODE` is required and must be `local`, `azureml`, or `remote`.
 
 ```bash
-MLFLOW_TRACKING_URI=file:///absolute/path/to/company-fit-check/.mlruns
+MLFLOW_TRACKING_MODE=local
+MLFLOW_TRACKING_URI=sqlite:////absolute/path/to/company-fit-check/.mlflow/mlflow.db
 MLFLOW_EXPERIMENT_NAME=company-fit-check
-MLFLOW_REGRESSION_EXPERIMENT_NAME=company-fit-check-llm-regression
-MLFLOW_MUTATION_EXPERIMENT_NAME=company-fit-check-llm-mutation
-MLFLOW_ARTIFACT_ROOT=
-AZURE_STORAGE_CONNECTION_STRING=
+MLFLOW_ARTIFACT_ROOT=wasbs://container@account.blob.core.windows.net/company-fit-check
+AZURE_STORAGE_CONNECTION_STRING=your-blob-storage-connection-string
 ```
 
-For Azure-backed artifact storage, set `MLFLOW_ARTIFACT_ROOT` to the remote
-artifact location and provide `AZURE_STORAGE_CONNECTION_STRING`. Local runs can
-leave both values empty.
+Local mode writes MLflow metadata to SQLite and artifacts to the configured
+artifact root. Azure ML mode uses the Azure ML / Foundry tracking URI and Azure
+managed artifact storage:
+
+```bash
+MLFLOW_TRACKING_MODE=azureml
+MLFLOW_TRACKING_URI=azureml://...
+MLFLOW_EXPERIMENT_NAME=company-fit-check
+```
+
+Remote mode uses a deployed MLflow tracking server. In this mode the app only
+needs the tracking server URI; the remote server owns the backend store and
+artifact storage configuration:
+
+```bash
+MLFLOW_TRACKING_MODE=remote
+MLFLOW_TRACKING_URI=https://your-mlflow-container-app.azurecontainerapps.io
+MLFLOW_EXPERIMENT_NAME=company-fit-check
+```
 
 Start the MLflow monitoring UI in a separate terminal with
 [start_mlflow_ui.sh](https://github.com/RushenKottie/company-fit-check/blob/main/start_mlflow_ui.sh):
@@ -153,6 +163,75 @@ chainlit run src/interfaces/chainlit/app.py
 Then open the local Chainlit URL shown in the terminal, upload a CV PDF, and
 send the initial prompt describing the user's background, goals, and preferred
 company direction.
+
+## Azure DevOps
+
+The deployed app link is available upon request. The deployed environment is
+built around Azure-native services, with the app and observability stack
+separated so the user-facing workflow can evolve independently from the MLflow
+tracking server.
+
+![Azure application architecture](img/azure_application_architecture.png)
+
+### Main App Infrastructure
+
+- Azure Container Apps hosts the main `company-fit-check` Chainlit application.
+  The container listens on port `8000`, and the Container App ingress target port
+  is `8000`.
+- Azure Container Registry stores deployable container images for the main app
+  and the standalone MLflow server.
+- Azure Key Vault stores secrets such as Azure OpenAI credentials, MLflow backend
+  connection strings, and Azure Storage credentials. Container Apps consume these
+  through Key Vault-backed secret references.
+- Azure Container Apps managed identity is used to grant Container Apps access
+  to Key Vault secrets through the `Key Vault Secrets User` role.
+
+### MLflow Infrastructure
+
+- A separate Azure Container App hosts the MLflow tracking server. The container
+  listens on port `5000`, and the Container App ingress target port is `5000`.
+- The project uses a standalone MLflow server instead of Azure ML managed MLflow
+  because the evaluation and observability workflows depend on the fuller MLflow
+  UI experience: experiment comparison, trace inspection, metrics, run artifacts,
+  prompts, transcripts, generated CSVs, and evaluation reports are all reviewed
+  together there. Azure ML managed tracking is useful, but its UI surface is more
+  limited for this project, so replacing the standalone server would remove
+  observability features that the evaluation framework relies on.
+- Azure SQL Database is used as the MLflow backend store for experiments, runs,
+  metrics, params, tags, and trace metadata.
+- Azure Blob Storage is used as the MLflow artifact store for transcripts,
+  prompts, generated CSV files, evaluation reports, and other run artifacts.
+- The MLflow server receives its backend and artifact configuration through
+  environment variables such as `MLFLOW_BACKEND_STORE_URI`,
+  `MLFLOW_ARTIFACTS_DESTINATION`, and `AZURE_STORAGE_CONNECTION_STRING`.
+- The MLflow server also needs host/CORS configuration for the Container Apps
+  hostname, using `MLFLOW_SERVER_ALLOWED_HOSTS` and
+  `MLFLOW_SERVER_CORS_ALLOWED_ORIGINS`, so the MLflow security middleware does
+  not reject valid browser or client requests.
+- The main app connects to this server with `MLFLOW_TRACKING_MODE=remote` and an
+  HTTPS `MLFLOW_TRACKING_URI`.
+
+### AI Foundry
+
+- Azure OpenAI provides the main model deployment used by CV simplification,
+  preference interpretation, company discovery, company scoring, and the default
+  LLM judge configuration.
+- Microsoft Foundry AI is used for evaluation-time model access, including the
+  user simulator flow and Anthropic Foundry integration.
+- Judge-specific Azure OpenAI settings can be supplied with
+  `LLM_JUDGE_AZURE_OPENAI_*`; otherwise the judge falls back to the main Azure
+  OpenAI deployment.
+
+### Evaluation Data Flow
+
+- Deterministic, non-deterministic, and mutation evaluation runs execute from the
+  same application workflow code used by the Chainlit app.
+- Evaluation runs send traces, metrics, and artifacts to the remote MLflow
+  server.
+- The MLflow server writes structured tracking metadata to Azure SQL Database
+  and larger artifacts to Azure Blob Storage.
+- Evaluation outputs can then be inspected in the MLflow UI without depending on
+  Azure ML managed MLflow tracking.
 
 ## Usage Examples
 

@@ -13,8 +13,12 @@ import uuid
 from typing import Sequence
 
 from application.session import continue_session, start_session
-from config import get_mlflow_settings
-from evals import eval_root, repo_root
+from evals import (
+    MUTATION_EXPERIMENT_NAME,
+    REGRESSION_EXPERIMENT_NAME,
+    eval_root,
+    repo_root,
+)
 from evals.nondeterministic.case_loader import build_nondeterministic_case_index
 from evals.nondeterministic.case_models import NondeterministicCase
 from evals.nondeterministic.judge import (
@@ -95,7 +99,7 @@ class NondeterministicRunner:
 
         try:
             with bind_mlflow_experiment(
-                self.experiment_name or get_mlflow_settings().regression_experiment_name
+                self.experiment_name or REGRESSION_EXPERIMENT_NAME
             ):
                 case = self._get_case(case_id)
                 start_response = self.user_simulator.start_case(StartCaseRequest(case_id=case_id))
@@ -363,7 +367,6 @@ class NondeterministicRunner:
 def create_default_nondeterministic_runner() -> NondeterministicRunner:
     """Return the default non-deterministic runner instance."""
 
-    settings = get_mlflow_settings()
     case_index = build_nondeterministic_case_index(
         eval_root() / "non_deterministic_regression"
     )
@@ -371,7 +374,7 @@ def create_default_nondeterministic_runner() -> NondeterministicRunner:
         user_simulator=UserSimulator(case_index=case_index),
         case_index=case_index,
         artifact_root=(repo_root() / "artifacts" / "regression").resolve(),
-        experiment_name=settings.regression_experiment_name,
+        experiment_name=REGRESSION_EXPERIMENT_NAME,
         case_source="regression",
     )
 
@@ -379,13 +382,12 @@ def create_default_nondeterministic_runner() -> NondeterministicRunner:
 def create_mutation_runner(case_dir: Path) -> NondeterministicRunner:
     """Return a non-deterministic runner backed by generated mutation cases."""
 
-    settings = get_mlflow_settings()
     case_index = build_nondeterministic_case_index(case_dir)
     return NondeterministicRunner(
         user_simulator=UserSimulator(case_index=case_index),
         case_index=case_index,
         artifact_root=(repo_root() / "artifacts" / "mutation_tests" / "runs").resolve(),
-        experiment_name=settings.mutation_experiment_name,
+        experiment_name=MUTATION_EXPERIMENT_NAME,
         case_source="mutation",
     )
 

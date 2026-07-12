@@ -95,6 +95,8 @@ def activate_mlflow_tracking(state: CompanyFitState) -> MlflowTrackingContext | 
         return None
 
     settings = get_mlflow_settings()
+    settings.configure_environment()
+    mlflow.set_tracking_uri(settings.tracking_uri)
     safe_mlflow_call(
         "set MLflow experiment",
         lambda: mlflow.set_experiment(resolve_experiment_name(settings)),
