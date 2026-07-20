@@ -83,7 +83,9 @@ and the evaluation framework:
 - `eval_data` - evaluation cases, fixture CVs, saved workflow states, and
   mutation configuration.
 - `img` - architecture and evaluation diagrams used in this README.
-- `Dockerfile` - container image definition for the main Chainlit application.
+- `Dockerfile` - container image definition for the Chainlit application. The
+  same image can also be used by Azure Container Apps Jobs for evaluation runs
+  when the image is built with `tests` and `eval_data` included.
 - `infra/mlflow-server/Dockerfile` - container image definition for the
   standalone MLflow tracking server.
 
@@ -164,7 +166,7 @@ Then open the local Chainlit URL shown in the terminal, upload a CV PDF, and
 send the initial prompt describing the user's background, goals, and preferred
 company direction.
 
-## Azure DevOps
+## Azure Deployment and Evaluation Operations
 
 The deployed app link is available upon request. The deployed environment is
 built around Azure-native services, with the app and observability stack
@@ -226,12 +228,65 @@ tracking server.
 
 - Deterministic, non-deterministic, and mutation evaluation runs execute from the
   same application workflow code used by the Chainlit app.
-- Evaluation runs send traces, metrics, and artifacts to the remote MLflow
-  server.
+- Evaluation runs are executed as manual Azure Container Apps Jobs. Each job uses
+  the same ACR image pattern as the deployed app and overrides the container
+  command to run a pytest entrypoint instead of starting Chainlit.
+- The evaluation job image must contain `tests` and `eval_data`, because the
+  tests import the workflow modules directly and load repository-local fixtures.
+  The application command still starts Chainlit, while the job command runs
+  pytest against the same packaged code.
+- Evaluation runs send traces, metrics, transcripts, generated CSVs, judge
+  requests/results, and other artifacts to the remote MLflow server.
 - The MLflow server writes structured tracking metadata to Azure SQL Database
   and larger artifacts to Azure Blob Storage.
 - Evaluation outputs can then be inspected in the MLflow UI without depending on
   Azure ML managed MLflow tracking.
+
+### Manual Azure Container Apps Evaluation Jobs
+
+The Azure evaluation setup uses three separate manual Container Apps Jobs rather
+than one combined command. Separate jobs avoid shell-argument parsing issues in
+the portal, make logs easier to inspect, and allow deterministic, regression,
+and mutation runs to be started independently.
+
+The current job layout is:
+
+| Job name | Command | Arguments |
+| --- | --- | --- |
+| `cfc-deterministic-evals` | `pytest` | `tests/evals/test_deterministic_suite.py` |
+| `cfc-regression-evals` | `pytest` | `tests/evals/test_llm_regression_runner.py --concurrent --max-workers 2` |
+| `cfc-mutation-evals` | `pytest` | `tests/evals/test_llm_mutation_cases.py --mutation-count 2` |
+
+Regression and mutation jobs can be run concurrently inside the test runner, but
+high worker counts increase memory pressure because multiple full workflow
+sessions, MLflow artifacts, LLM calls, and judge requests are active in one
+container. If a job exits with code `137`, treat it as a likely resource kill:
+increase CPU/memory or reduce `--max-workers`.
+
+Recommended job settings:
+
+- Trigger type: manual.
+- Workload profile: Consumption for short-lived manual runs.
+- Initial resources: 4 CPU and 8 GiB memory for regression; smaller resources
+  are usually enough for deterministic runs.
+- Replica timeout: at least 3600 seconds for regression and mutation.
+- Registry authentication: managed identity with `AcrPull` on the Azure
+  Container Registry.
+- Secret access: managed identity with `Key Vault Secrets User` on the Key
+  Vault.
+
+In Azure, sensitive values are stored as Container Apps Job secrets backed by
+Key Vault references. The Python code reads environment variable names such as
+`AZURE_OPENAI_API_KEY` and `USER_SIMULATOR_FOUNDRY_API_KEY`; the Key Vault
+secret names may use Azure-friendly names such as `AZURE-OPENAI-API-KEY` and
+`USER-SIMULATOR-FOUNDRY-API-KEY`.
+
+The regression and mutation jobs are quality gates. A failed job does not always
+mean the Azure job infrastructure is broken. If pytest reports
+`judge_component_below_threshold`, the workflow completed but the LLM judge
+scored at least one case below the configured threshold. Those failures should
+be reviewed in MLflow using the transcript, generated CSV, judge request, judge
+result, and component scores.
 
 ## Usage Examples
 
